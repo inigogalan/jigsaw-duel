@@ -4,31 +4,49 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Jigsaw Challenge</title>
+
+  <!-- Motor jigsaw (CDN oficial del proyecto) -->
   <script src="https://flbulgarelli.github.io/headbreaker/js/headbreaker.js"></script>
+
   <style>
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 16px; }
-    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; max-width: 1100px; margin: 0 auto; }
-    @media (min-width: 980px){ .grid { grid-template-columns: 420px 1fr; } }
-    .card { border: 1px solid #ddd; border-radius: 10px; padding: 12px; }
-    label { display:block; margin-top: 10px; font-size: 14px; }
-    input, button { width: 100%; padding: 10px; margin-top: 6px; box-sizing: border-box; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; max-width: 1150px; margin: 0 auto; }
+    @media (min-width: 980px){ .grid { grid-template-columns: 440px 1fr; } }
+    .card { border: 1px solid #ddd; border-radius: 12px; padding: 14px; }
+    h2 { margin: 8px 0 12px; font-size: 18px; }
+    label { display:block; margin-top: 10px; font-size: 13px; }
+    input, button, select { width: 100%; padding: 10px; margin-top: 6px; box-sizing: border-box; }
     button { cursor: pointer; }
-    #hud { display:flex; gap: 10px; align-items:center; justify-content: space-between; }
+    .row { display:flex; gap: 10px; }
+    .row > * { flex: 1; }
+    .muted { font-size: 12px; color: #444; line-height: 1.35; }
+    .sep { height: 1px; background: #eee; margin: 14px 0; }
+
+    #hud { display:flex; gap: 10px; align-items:center; justify-content: space-between; margin-bottom: 10px; }
     #status { font-weight: 600; }
-    #puzzleWrap { position: relative; min-height: 520px; }
+    #timer { font-variant-numeric: tabular-nums; }
+
+    #puzzleWrap { position: relative; min-height: 560px; }
     #puzzle { width: 100%; height: 100%; }
+
     #overlay {
-      position:absolute; inset:0; display:none; align-items:center; justify-content:center;
-      background: rgba(0,0,0,0.75); color:#fff; text-align:center; padding: 16px;
-      border-radius: 10px;
+      position:absolute; inset:0;
+      display:none; align-items:center; justify-content:center;
+      background: rgba(0,0,0,0.78); color:#fff;
+      text-align:center; padding: 16px;
+      border-radius: 12px;
+      pointer-events: all;
     }
     #overlay.active { display:flex; }
+
     #revealImg {
-      max-width: 92%; max-height: 92%; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      max-width: 92%; max-height: 92%;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
       display:none;
     }
     #revealImg.active { display:block; }
-    .small { font-size: 12px; color: #444; }
+    .pill { display:inline-block; padding: 2px 8px; border: 1px solid #ddd; border-radius: 999px; font-size: 12px; }
   </style>
 </head>
 <body>
@@ -40,11 +58,16 @@
     <label>Foto</label>
     <input id="createImage" type="file" accept="image/*" />
 
-    <label>Piezas horizontales (X)</label>
-    <input id="piecesX" type="number" min="2" max="30" value="6" />
-
-    <label>Piezas verticales (Y)</label>
-    <input id="piecesY" type="number" min="2" max="30" value="5" />
+    <div class="row">
+      <div>
+        <label>Piezas X</label>
+        <input id="piecesX" type="number" min="2" max="30" value="6" />
+      </div>
+      <div>
+        <label>Piezas Y</label>
+        <input id="piecesY" type="number" min="2" max="30" value="5" />
+      </div>
+    </div>
 
     <label>Tiempo límite para resolver (segundos)</label>
     <input id="solveSeconds" type="number" min="10" max="7200" value="300" />
@@ -52,33 +75,48 @@
     <label>Tiempo para ver la foto al ganar (segundos)</label>
     <input id="revealSeconds" type="number" min="1" max="600" value="10" />
 
+    <div class="row">
+      <div>
+        <label>Max tamaño imagen (px, recomendado)</label>
+        <input id="maxDim" type="number" min="600" max="4000" value="1600" />
+      </div>
+      <div>
+        <label>Calidad JPEG (0.5–1.0)</label>
+        <input id="jpegQ" type="number" min="0.5" max="1.0" step="0.05" value="0.9" />
+      </div>
+    </div>
+
     <label>Contraseña (para cifrar el reto)</label>
-    <input id="createPass" type="password" placeholder="Usa una contraseña fuerte" />
+    <input id="createPass" type="password" placeholder="mín. 8 caracteres" />
 
     <button id="btnCreate">Generar archivo de reto (.jpuz)</button>
     <a id="downloadLink" style="display:none;margin-top:10px;display:block;">Descargar reto</a>
 
-    <hr style="margin:16px 0">
+    <div class="sep"></div>
 
     <h2>Jugar reto (la otra persona)</h2>
+
     <label>Archivo .jpuz</label>
     <input id="playFile" type="file" accept=".jpuz,application/json" />
 
     <label>Contraseña</label>
     <input id="playPass" type="password" />
 
-    <button id="btnStart">Empezar</button>
+    <div class="row">
+      <button id="btnStart">Empezar</button>
+      <button id="btnReset" type="button">Reiniciar</button>
+    </div>
 
-    <p class="small">
-      Privacidad: el archivo contiene la foto cifrada; la web solo descifra localmente (en el navegador).
-      Aun así, evita reutilizar contraseñas.
+    <p class="muted">
+      Privacidad: la foto va dentro del .jpuz cifrada y se descifra solo en el navegador.
+      WebCrypto requiere HTTPS; GitHub Pages cumple ese requisito. :contentReference[oaicite:7]{index=7}
     </p>
   </div>
 
   <div class="card">
     <div id="hud">
       <div id="status">Estado: esperando…</div>
-      <div id="timer">⏱️</div>
+      <div id="timer" class="pill">Tiempo: —</div>
     </div>
 
     <div id="puzzleWrap">
@@ -90,7 +128,9 @@
 </div>
 
 <script>
-  // ---------- Helpers: base64 ----------
+  // =========================
+  // Base64 helpers
+  // =========================
   function ab2b64(ab) {
     const bytes = new Uint8Array(ab);
     let bin = "";
@@ -104,14 +144,19 @@
     return bytes.buffer;
   }
 
-  // ---------- Crypto (PBKDF2 -> AES-GCM) ----------
+  // =========================
+  // WebCrypto (PBKDF2 -> AES-GCM)
+  // =========================
+  const KDF_ITERS = 150000;
+
   async function deriveKey(pass, salt) {
     const enc = new TextEncoder();
+    // PBKDF2 params en deriveKey están documentados en MDN. :contentReference[oaicite:8]{index=8}
     const keyMaterial = await crypto.subtle.importKey(
       "raw", enc.encode(pass), { name: "PBKDF2" }, false, ["deriveKey"]
     );
     return crypto.subtle.deriveKey(
-      { name: "PBKDF2", salt, iterations: 150000, hash: "SHA-256" },
+      { name: "PBKDF2", salt, iterations: KDF_ITERS, hash: "SHA-256" },
       keyMaterial,
       { name: "AES-GCM", length: 256 },
       false,
@@ -131,7 +176,7 @@
     return {
       v: 1,
       kdf: "PBKDF2-SHA256",
-      iter: 150000,
+      iter: KDF_ITERS,
       alg: "AES-GCM-256",
       salt: ab2b64(salt.buffer),
       iv: ab2b64(iv.buffer),
@@ -145,13 +190,52 @@
     const key = await deriveKey(pass, salt);
 
     const ct = b642ab(pkg.ct);
+    // Ejemplos de cifrado/descifrado con PBKDF2 están en MDN (concepto y flujo). :contentReference[oaicite:9]{index=9}
     const plaintext = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ct);
 
     const dec = new TextDecoder();
     return JSON.parse(dec.decode(plaintext));
   }
 
-  // ---------- UI ----------
+  // =========================
+  // Imagen: carga + reescalado a JPEG
+  // =========================
+  function loadImageFromFile(file) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+      img.onerror = () => reject(new Error("No se pudo leer la imagen."));
+      img.src = url;
+    });
+  }
+
+  function canvasToBlob(canvas, type, quality) {
+    return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
+  }
+
+  async function fileToCompressedJpegBytes(file, maxDim, quality) {
+    const img = await loadImageFromFile(file);
+    const w = img.naturalWidth;
+    const h = img.naturalHeight;
+
+    const scale = Math.min(1, maxDim / Math.max(w, h));
+    const tw = Math.max(1, Math.round(w * scale));
+    const th = Math.max(1, Math.round(h * scale));
+
+    const c = document.createElement("canvas");
+    c.width = tw; c.height = th;
+    const ctx = c.getContext("2d", { alpha: false });
+    ctx.drawImage(img, 0, 0, tw, th);
+
+    const blob = await canvasToBlob(c, "image/jpeg", quality);
+    if (!blob) throw new Error("No se pudo comprimir la imagen.");
+    return await blob.arrayBuffer();
+  }
+
+  // =========================
+  // UI + Game state
+  // =========================
   const statusEl = document.getElementById("status");
   const timerEl = document.getElementById("timer");
   const overlayEl = document.getElementById("overlay");
@@ -159,7 +243,7 @@
 
   let countdown = null;
   let solved = false;
-  let canvas = null;
+  let canvasHB = null;
 
   function setStatus(s) { statusEl.textContent = "Estado: " + s; }
   function showOverlay(html) {
@@ -174,30 +258,56 @@
     if (countdown) clearInterval(countdown);
     countdown = null;
   }
-
   function formatMMSS(totalSeconds) {
     const m = Math.floor(totalSeconds / 60);
     const s = totalSeconds % 60;
     return `${m}:${String(s).padStart(2,"0")}`;
   }
 
-  // ---------- Create challenge ----------
+  function hardResetBoard() {
+    solved = false;
+    stopCountdown();
+    timerEl.textContent = "Tiempo: —";
+    hideOverlay();
+    revealImgEl.classList.remove("active");
+    revealImgEl.src = "";
+    document.getElementById("puzzle").innerHTML = "";
+    canvasHB = null;
+    setStatus("esperando…");
+  }
+
+  document.getElementById("btnReset").addEventListener("click", hardResetBoard);
+
+  // =========================
+  // Crear reto: genera .jpuz cifrado
+  // =========================
   document.getElementById("btnCreate").addEventListener("click", async () => {
     try {
+      if (!crypto?.subtle) {
+        // SubtleCrypto requiere contexto seguro (HTTPS). :contentReference[oaicite:10]{index=10}
+        throw new Error("WebCrypto no disponible. Abre la web por HTTPS (GitHub Pages).");
+      }
+
       const file = document.getElementById("createImage").files[0];
       const x = Number(document.getElementById("piecesX").value);
       const y = Number(document.getElementById("piecesY").value);
       const solveSeconds = Number(document.getElementById("solveSeconds").value);
       const revealSeconds = Number(document.getElementById("revealSeconds").value);
+      const maxDim = Number(document.getElementById("maxDim").value);
+      const jpegQ = Number(document.getElementById("jpegQ").value);
       const pass = document.getElementById("createPass").value;
 
       if (!file) throw new Error("Selecciona una foto.");
-      if (!pass || pass.length < 8) throw new Error("Usa una contraseña (mínimo 8 caracteres).");
+      if (!pass || pass.length < 8) throw new Error("Contraseña mínima: 8 caracteres.");
+      if (!(x >= 2 && x <= 30 && y >= 2 && y <= 30)) throw new Error("Piezas X/Y fuera de rango.");
+      if (!(solveSeconds >= 10 && solveSeconds <= 7200)) throw new Error("Tiempo límite fuera de rango.");
+      if (!(revealSeconds >= 1 && revealSeconds <= 600)) throw new Error("Tiempo de revelado fuera de rango.");
 
-      const imgBytes = await file.arrayBuffer();
+      setStatus("procesando imagen…");
+      const imgBytes = await fileToCompressedJpegBytes(file, maxDim, jpegQ);
+
       const payload = {
-        name: file.name,
-        mime: file.type || "image/jpeg",
+        mime: "image/jpeg",
         img: ab2b64(imgBytes),
         piecesX: x,
         piecesY: y,
@@ -205,7 +315,9 @@
         revealSeconds
       };
 
+      setStatus("cifrando…");
       const pkg = await encryptPayload(pass, payload);
+
       const blob = new Blob([JSON.stringify(pkg)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
 
@@ -214,44 +326,50 @@
       a.download = "reto.jpuz";
       a.style.display = "block";
       a.textContent = "Descargar reto.jpuz";
+
       setStatus("reto generado. Envía el .jpuz + contraseña.");
     } catch (e) {
       setStatus("error: " + e.message);
     }
   });
 
-  // ---------- Play challenge ----------
+  // =========================
+  // Jugar reto: descifra y lanza puzzle con cuenta atrás
+  // =========================
   document.getElementById("btnStart").addEventListener("click", async () => {
     try {
-      hideOverlay();
-      revealImgEl.classList.remove("active");
-      revealImgEl.src = "";
+      if (!crypto?.subtle) throw new Error("WebCrypto no disponible (requiere HTTPS)."); // :contentReference[oaicite:11]{index=11}
 
       const file = document.getElementById("playFile").files[0];
       const pass = document.getElementById("playPass").value;
       if (!file) throw new Error("Selecciona el archivo .jpuz.");
       if (!pass) throw new Error("Introduce la contraseña.");
 
+      hardResetBoard();
+      setStatus("descifrando…");
+
       const pkg = JSON.parse(await file.text());
       const payload = await decryptPayload(pass, pkg);
 
-      // Build image
+      // Construye imagen desde base64
       const img = new Image();
       img.src = `data:${payload.mime};base64,${payload.img}`;
 
-      solved = false;
-      stopCountdown();
-
       img.onload = () => {
-        // Reset puzzle area
-        document.getElementById("puzzle").innerHTML = "";
+        // (Re)crear tablero
+        const puzzleDiv = document.getElementById("puzzle");
+        puzzleDiv.innerHTML = "";
 
-        const maxWidth = document.getElementById("puzzleWrap").clientWidth - 10;
-        const pieceSize = Math.max(30, Math.floor(maxWidth / payload.piecesX));
-        const width = pieceSize * payload.piecesX + 40;
-        const height = pieceSize * payload.piecesY + 80;
+        const wrap = document.getElementById("puzzleWrap");
+        const availableW = Math.max(480, wrap.clientWidth - 10);
 
-        canvas = new headbreaker.Canvas("puzzle", {
+        // Tamaño de pieza aproximado en función de X
+        const pieceSize = Math.max(34, Math.floor((availableW - 60) / payload.piecesX));
+        const width = pieceSize * payload.piecesX + 60;
+        const height = pieceSize * payload.piecesY + 120;
+
+        // Headbreaker: Canvas + autogenerate + adjustImages… :contentReference[oaicite:12]{index=12}
+        canvasHB = new headbreaker.Canvas("puzzle", {
           width, height,
           pieceSize,
           proximity: 18,
@@ -259,58 +377,65 @@
           strokeWidth: 1.5,
           lineSoftness: 0.18,
           image: img,
-          fixed: true
+          preventOffstageDrag: true,
+          fixed: true,
+          // para escalado de imagen según documentación
+          maxPiecesCount: { x: payload.piecesX, y: payload.piecesY }
         });
 
-        canvas.adjustImagesToPuzzleWidth();
-        canvas.autogenerate({
+        canvasHB.adjustImagesToPuzzleWidth();
+        canvasHB.autogenerate({
           horizontalPiecesCount: payload.piecesX,
           verticalPiecesCount: payload.piecesY
         });
+        canvasHB.shuffle(0.8);
+        canvasHB.draw();
 
-        canvas.shuffle(0.75);
-        canvas.draw();
-
-        // Detect "solved"
-        canvas.attachSolvedValidator();
-        canvas.onValid(() => {
+        // Detección de resuelto (validador + onValid). :contentReference[oaicite:13]{index=13}
+        canvasHB.attachSolvedValidator();
+        canvasHB.onValid(() => {
           if (solved) return;
           solved = true;
           stopCountdown();
-          setStatus("¡resuelto a tiempo! revelando…");
+
+          setStatus("resuelto a tiempo. revelando…");
           revealImgEl.src = img.src;
           revealImgEl.classList.add("active");
           showOverlay(`<div>
-            <h2>¡Correcto!</h2>
-            <p>Mostrando la foto completa durante ${payload.revealSeconds}s.</p>
+            <h2>Correcto</h2>
+            <p>Foto completa visible durante <b>${payload.revealSeconds}s</b>.</p>
           </div>`);
+
           setTimeout(() => {
             revealImgEl.classList.remove("active");
             showOverlay(`<div><h2>Fin</h2><p>Reto completado.</p></div>`);
+            setStatus("finalizado.");
           }, payload.revealSeconds * 1000);
         });
 
-        // Countdown
+        // Cuenta atrás
         let remaining = payload.solveSeconds;
-        timerEl.textContent = `⏱️ ${formatMMSS(remaining)}`;
+        timerEl.textContent = "Tiempo: " + formatMMSS(remaining);
         setStatus("en juego…");
 
         countdown = setInterval(() => {
           if (solved) return;
           remaining -= 1;
-          timerEl.textContent = `⏱️ ${formatMMSS(Math.max(0, remaining))}`;
+          timerEl.textContent = "Tiempo: " + formatMMSS(Math.max(0, remaining));
+
           if (remaining <= 0) {
             stopCountdown();
             showOverlay(`<div>
               <h2>Tiempo agotado</h2>
               <p>No se completó el puzzle dentro del límite.</p>
-              <p>Recarga la página o vuelve a pulsar “Empezar” para reintentar.</p>
+              <p>Puedes pulsar <b>Reiniciar</b> y volver a intentar.</p>
             </div>`);
             setStatus("fallo por tiempo.");
-            // Overlay bloquea interacción (captura clicks)
           }
         }, 1000);
       };
+
+      img.onerror = () => setStatus("error: no se pudo cargar la imagen descifrada.");
     } catch (e) {
       setStatus("error: " + e.message);
     }
@@ -319,3 +444,4 @@
 
 </body>
 </html>
+
