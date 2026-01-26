@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Jigsaw Challenge</title>
+  <script src="https://flbulgarelli.github.io/headbreaker/js/headbreaker.js"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 16px; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; max-width: 1100px; margin: 0 auto; }
+    @media (min-width: 980px){ .grid { grid-template-columns: 420px 1fr; } }
+    .card { border: 1px solid #ddd; border-radius: 10px; padding: 12px; }
+    label { display:block; margin-top: 10px; font-size: 14px; }
+    input, button { width: 100%; padding: 10px; margin-top: 6px; box-sizing: border-box; }
+    button { cursor: pointer; }
+    #hud { display:flex; gap: 10px; align-items:center; justify-content: space-between; }
+    #status { font-weight: 600; }
+    #puzzleWrap { position: relative; min-height: 520px; }
+    #puzzle { width: 100%; height: 100%; }
+    #overlay {
+      position:absolute; inset:0; display:none; align-items:center; justify-content:center;
+      background: rgba(0,0,0,0.75); color:#fff; text-align:center; padding: 16px;
+      border-radius: 10px;
+    }
+    #overlay.active { display:flex; }
+    #revealImg {
+      max-width: 92%; max-height: 92%; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      display:none;
+    }
+    #revealImg.active { display:block; }
+    .small { font-size: 12px; color: #444; }
+  </style>
+</head>
+<body>
+
+<div class="grid">
+  <div class="card">
+    <h2>Crear reto (tú)</h2>
+
+    <label>Foto</label>
+    <input id="createImage" type="file" accept="image/*" />
+
+    <label>Piezas horizontales (X)</label>
+    <input id="piecesX" type="number" min="2" max="30" value="6" />
+
+    <label>Piezas verticales (Y)</label>
+    <input id="piecesY" type="number" min="2" max="30" value="5" />
+
+    <label>Tiempo límite para resolver (segundos)</label>
+    <input id="solveSeconds" type="number" min="10" max="7200" value="300" />
+
+    <label>Tiempo para ver la foto al ganar (segundos)</label>
+    <input id="revealSeconds" type="number" min="1" max="600" value="10" />
+
+    <label>Contraseña (para cifrar el reto)</label>
+    <input id="createPass" type="password" placeholder="Usa una contraseña fuerte" />
+
+    <button id="btnCreate">Generar archivo de reto (.jpuz)</button>
+    <a id="downloadLink" style="display:none;margin-top:10px;display:block;">Descargar reto</a>
+
+    <hr style="margin:16px 0">
+
+    <h2>Jugar reto (la otra persona)</h2>
+    <label>Archivo .jpuz</label>
+    <input id="playFile" type="file" accept=".jpuz,application/json" />
+
+    <label>Contraseña</label>
+    <input id="playPass" type="password" />
+
+    <button id="btnStart">Empezar</button>
+
+    <p class="small">
+      Privacidad: el archivo contiene la foto cifrada; la web solo descifra localmente (en el navegador).
+      Aun así, evita reutilizar contraseñas.
+    </p>
+  </div>
+
+  <div class="card">
+    <div id="hud">
+      <div id="status">Estado: esperando…</div>
+      <div id="timer">⏱️</div>
+    </div>
+
+    <div id="puzzleWrap">
+      <div id="puzzle"></div>
+      <div id="overlay"></div>
+      <img id="revealImg" alt="Revelado" />
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- Helpers: base64 ----------
+  function ab2b64(ab) {
+    const bytes = new Uint8Array(ab);
+    let bin = "";
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  }
+  function b642ab(b64) {
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes.buffer;
+  }
+
+  // ---------- Crypto (PBKDF2 -> AES-GCM) ----------
+  async function deriveKey(pass, salt) {
+    const enc = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey(
+      "raw", enc.encode(pass), { name: "PBKDF2" }, false, ["deriveKey"]
+    );
+    return crypto.subtle.deriveKey(
+      { name: "PBKDF2", salt, iterations: 150000, hash: "SHA-256" },
+      keyMaterial,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["encrypt", "decrypt"]
+    );
+  }
+
+  async function encryptPayload(pass, payloadObj) {
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const key = await deriveKey(pass, salt);
+
+    const enc = new TextEncoder();
+    const plaintext = enc.encode(JSON.stringify(payloadObj));
+    const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plaintext);
+
+    return {
+      v: 1,
+      kdf: "PBKDF2-SHA256",
+      iter: 150000,
+      alg: "AES-GCM-256",
+      salt: ab2b64(salt.buffer),
+      iv: ab2b64(iv.buffer),
+      ct: ab2b64(ciphertext)
+    };
+  }
+
+  async function decryptPayload(pass, pkg) {
+    const salt = new Uint8Array(b642ab(pkg.salt));
+    const iv = new Uint8Array(b642ab(pkg.iv));
+    const key = await deriveKey(pass, salt);
+
+    const ct = b642ab(pkg.ct);
+    const plaintext = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ct);
+
+    const dec = new TextDecoder();
+    return JSON.parse(dec.decode(plaintext));
+  }
+
+  // ---------- UI ----------
+  const statusEl = document.getElementById("status");
+  const timerEl = document.getElementById("timer");
+  const overlayEl = document.getElementById("overlay");
+  const revealImgEl = document.getElementById("revealImg");
+
+  let countdown = null;
+  let solved = false;
+  let canvas = null;
+
+  function setStatus(s) { statusEl.textContent = "Estado: " + s; }
+  function showOverlay(html) {
+    overlayEl.innerHTML = html;
+    overlayEl.classList.add("active");
+  }
+  function hideOverlay() {
+    overlayEl.classList.remove("active");
+    overlayEl.innerHTML = "";
+  }
+  function stopCountdown() {
+    if (countdown) clearInterval(countdown);
+    countdown = null;
+  }
+
+  function formatMMSS(totalSeconds) {
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return `${m}:${String(s).padStart(2,"0")}`;
+  }
+
+  // ---------- Create challenge ----------
+  document.getElementById("btnCreate").addEventListener("click", async () => {
+    try {
+      const file = document.getElementById("createImage").files[0];
+      const x = Number(document.getElementById("piecesX").value);
+      const y = Number(document.getElementById("piecesY").value);
+      const solveSeconds = Number(document.getElementById("solveSeconds").value);
+      const revealSeconds = Number(document.getElementById("revealSeconds").value);
+      const pass = document.getElementById("createPass").value;
+
+      if (!file) throw new Error("Selecciona una foto.");
+      if (!pass || pass.length < 8) throw new Error("Usa una contraseña (mínimo 8 caracteres).");
+
+      const imgBytes = await file.arrayBuffer();
+      const payload = {
+        name: file.name,
+        mime: file.type || "image/jpeg",
+        img: ab2b64(imgBytes),
+        piecesX: x,
+        piecesY: y,
+        solveSeconds,
+        revealSeconds
+      };
+
+      const pkg = await encryptPayload(pass, payload);
+      const blob = new Blob([JSON.stringify(pkg)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.getElementById("downloadLink");
+      a.href = url;
+      a.download = "reto.jpuz";
+      a.style.display = "block";
+      a.textContent = "Descargar reto.jpuz";
+      setStatus("reto generado. Envía el .jpuz + contraseña.");
+    } catch (e) {
+      setStatus("error: " + e.message);
+    }
+  });
+
+  // ---------- Play challenge ----------
+  document.getElementById("btnStart").addEventListener("click", async () => {
+    try {
+      hideOverlay();
+      revealImgEl.classList.remove("active");
+      revealImgEl.src = "";
+
+      const file = document.getElementById("playFile").files[0];
+      const pass = document.getElementById("playPass").value;
+      if (!file) throw new Error("Selecciona el archivo .jpuz.");
+      if (!pass) throw new Error("Introduce la contraseña.");
+
+      const pkg = JSON.parse(await file.text());
+      const payload = await decryptPayload(pass, pkg);
+
+      // Build image
+      const img = new Image();
+      img.src = `data:${payload.mime};base64,${payload.img}`;
+
+      solved = false;
+      stopCountdown();
+
+      img.onload = () => {
+        // Reset puzzle area
+        document.getElementById("puzzle").innerHTML = "";
+
+        const maxWidth = document.getElementById("puzzleWrap").clientWidth - 10;
+        const pieceSize = Math.max(30, Math.floor(maxWidth / payload.piecesX));
+        const width = pieceSize * payload.piecesX + 40;
+        const height = pieceSize * payload.piecesY + 80;
+
+        canvas = new headbreaker.Canvas("puzzle", {
+          width, height,
+          pieceSize,
+          proximity: 18,
+          borderFill: 10,
+          strokeWidth: 1.5,
+          lineSoftness: 0.18,
+          image: img,
+          fixed: true
+        });
+
+        canvas.adjustImagesToPuzzleWidth();
+        canvas.autogenerate({
+          horizontalPiecesCount: payload.piecesX,
+          verticalPiecesCount: payload.piecesY
+        });
+
+        canvas.shuffle(0.75);
+        canvas.draw();
+
+        // Detect "solved"
+        canvas.attachSolvedValidator();
+        canvas.onValid(() => {
+          if (solved) return;
+          solved = true;
+          stopCountdown();
+          setStatus("¡resuelto a tiempo! revelando…");
+          revealImgEl.src = img.src;
+          revealImgEl.classList.add("active");
+          showOverlay(`<div>
+            <h2>¡Correcto!</h2>
+            <p>Mostrando la foto completa durante ${payload.revealSeconds}s.</p>
+          </div>`);
+          setTimeout(() => {
+            revealImgEl.classList.remove("active");
+            showOverlay(`<div><h2>Fin</h2><p>Reto completado.</p></div>`);
+          }, payload.revealSeconds * 1000);
+        });
+
+        // Countdown
+        let remaining = payload.solveSeconds;
+        timerEl.textContent = `⏱️ ${formatMMSS(remaining)}`;
+        setStatus("en juego…");
+
+        countdown = setInterval(() => {
+          if (solved) return;
+          remaining -= 1;
+          timerEl.textContent = `⏱️ ${formatMMSS(Math.max(0, remaining))}`;
+          if (remaining <= 0) {
+            stopCountdown();
+            showOverlay(`<div>
+              <h2>Tiempo agotado</h2>
+              <p>No se completó el puzzle dentro del límite.</p>
+              <p>Recarga la página o vuelve a pulsar “Empezar” para reintentar.</p>
+            </div>`);
+            setStatus("fallo por tiempo.");
+            // Overlay bloquea interacción (captura clicks)
+          }
+        }, 1000);
+      };
+    } catch (e) {
+      setStatus("error: " + e.message);
+    }
+  });
+</script>
+
+</body>
+</html>
