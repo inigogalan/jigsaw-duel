@@ -5,129 +5,611 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Jigsaw Challenge</title>
 
-  <!-- Motor jigsaw (CDN oficial del proyecto) -->
+  <!-- Motor jigsaw -->
   <script src="https://flbulgarelli.github.io/headbreaker/js/headbreaker.js"></script>
 
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 16px; }
-    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; max-width: 1150px; margin: 0 auto; }
-    @media (min-width: 980px){ .grid { grid-template-columns: 440px 1fr; } }
-    .card { border: 1px solid #ddd; border-radius: 12px; padding: 14px; }
-    h2 { margin: 8px 0 12px; font-size: 18px; }
-    label { display:block; margin-top: 10px; font-size: 13px; }
-    input, button, select { width: 100%; padding: 10px; margin-top: 6px; box-sizing: border-box; }
-    button { cursor: pointer; }
-    .row { display:flex; gap: 10px; }
-    .row > * { flex: 1; }
-    .muted { font-size: 12px; color: #444; line-height: 1.35; }
-    .sep { height: 1px; background: #eee; margin: 14px 0; }
+    :root{
+      --page-bg: #f3f4f6;
+      --panel-bg: #ffffff;
+      --panel-border: rgba(17,24,39,.10);
+      --text: #111827;
+      --muted: rgba(17,24,39,.70);
+      --muted2: rgba(17,24,39,.55);
 
-    #hud { display:flex; gap: 10px; align-items:center; justify-content: space-between; margin-bottom: 10px; }
-    #status { font-weight: 600; }
-    #timer { font-variant-numeric: tabular-nums; }
+      --shadow: 0 12px 28px rgba(17,24,39,.10);
+      --shadow2: 0 6px 16px rgba(17,24,39,.10);
 
-    #puzzleWrap { position: relative; min-height: 560px; }
-    #puzzle { width: 100%; height: 100%; }
-
-    #overlay {
-      position:absolute; inset:0;
-      display:none; align-items:center; justify-content:center;
-      background: rgba(0,0,0,0.78); color:#fff;
-      text-align:center; padding: 16px;
-      border-radius: 12px;
-      pointer-events: all;
+      /* theme defaults (blue felt) */
+      --felt: #4b6f86;
+      --felt2: #3f647c;
+      --accent: #d7b464; /* sutil dorado */
+      --toolbar-bg: rgba(12, 24, 34, .55);
+      --toolbar-border: rgba(255,255,255,.12);
+      --button-bg: rgba(255,255,255,.10);
+      --button-bg-hover: rgba(255,255,255,.16);
+      --button-text: rgba(255,255,255,.92);
+      --pill-bg: rgba(0,0,0,.28);
+      --pill-text: rgba(255,255,255,.92);
     }
-    #overlay.active { display:flex; }
 
-    #revealImg {
-      max-width: 92%; max-height: 92%;
+    /* Themes (t) */
+    .theme-slate{
+      --felt: #5a6570;
+      --felt2:#4f5a64;
+      --accent:#c9d2db;
+      --toolbar-bg: rgba(18, 22, 26, .56);
+    }
+    .theme-forest{
+      --felt: #2f6b5c;
+      --felt2:#2a5e51;
+      --accent:#d5c68a;
+      --toolbar-bg: rgba(10, 22, 18, .56);
+    }
+
+    *{ box-sizing: border-box; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text);
+      background: var(--page-bg);
+    }
+
+    /* Top brand header (similar “site header” feel) */
+    .brandbar{
+      height: 64px;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      padding: 0 16px;
+      background:
+        linear-gradient(180deg, #2f5872 0%, #2a516a 100%);
+      color: rgba(255,255,255,.92);
+      border-bottom: 1px solid rgba(255,255,255,.12);
+    }
+    .brand-left{
+      display:flex; align-items:center; gap: 12px;
+      min-width: 240px;
+    }
+    .logo{
+      width: 34px; height: 34px; border-radius: 10px;
+      display:grid; place-items:center;
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.18);
+      box-shadow: 0 10px 24px rgba(0,0,0,.18);
+    }
+    .logo svg{ opacity:.95 }
+    .brand-title{
+      display:flex; flex-direction: column; line-height: 1.1;
+    }
+    .brand-title strong{ font-size: 14px; letter-spacing: .2px; }
+    .brand-title span{ font-size: 12px; opacity:.80; }
+
+    .brand-right{
+      display:flex; align-items:center; gap: 10px;
+      font-size: 12px;
+      opacity: .9;
+    }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.16);
+    }
+
+    /* App layout */
+    .app{
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap: 14px;
+      padding: 14px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Sidebar */
+    .panel{
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      box-shadow: var(--shadow2);
+      overflow: hidden;
+      min-height: calc(100vh - 64px - 28px);
+    }
+    .panel-header{
+      padding: 14px 14px 12px;
+      border-bottom: 1px solid rgba(17,24,39,.08);
+      background: linear-gradient(180deg, rgba(17,24,39,.03) 0%, rgba(17,24,39,.01) 100%);
+    }
+    .tabs{
+      display:flex;
+      gap: 8px;
+      background: rgba(17,24,39,.04);
+      padding: 6px;
       border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      border: 1px solid rgba(17,24,39,.06);
+    }
+    .tab{
+      flex:1;
+      padding: 10px 10px;
+      font-weight: 700;
+      font-size: 12px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      color: rgba(17,24,39,.75);
+    }
+    .tab.active{
+      background: #fff;
+      border-color: rgba(17,24,39,.10);
+      box-shadow: 0 8px 18px rgba(17,24,39,.10);
+      color: rgba(17,24,39,.92);
+    }
+    .panel-body{ padding: 14px; }
+    .section-title{
+      margin: 14px 0 10px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .18px;
+      text-transform: uppercase;
+      color: rgba(17,24,39,.60);
+    }
+    label{
+      display:block;
+      margin-top: 10px;
+      font-size: 12px;
+      color: rgba(17,24,39,.78);
+      font-weight: 600;
+    }
+    .hint{
+      font-size: 12px;
+      color: var(--muted2);
+      margin-top: 6px;
+      line-height: 1.35;
+    }
+    input, select, button{
+      width: 100%;
+      padding: 10px 12px;
+      margin-top: 7px;
+      border-radius: 12px;
+      border: 1px solid rgba(17,24,39,.12);
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+    input:focus, select:focus{
+      border-color: rgba(37,99,235,.35);
+      box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+    }
+    .row{ display:flex; gap: 10px; }
+    .row > *{ flex:1; }
+
+    .btn{
+      cursor: pointer;
+      font-weight: 800;
+      border: 1px solid rgba(17,24,39,.14);
+      background: linear-gradient(180deg, rgba(17,24,39,.03) 0%, rgba(17,24,39,.01) 100%);
+    }
+    .btn:hover{ box-shadow: 0 10px 18px rgba(17,24,39,.10); }
+    .btn-primary{
+      border-color: rgba(37,99,235,.25);
+      background: linear-gradient(180deg, rgba(37,99,235,.14) 0%, rgba(37,99,235,.06) 100%);
+    }
+    .btn-danger{
+      border-color: rgba(239,68,68,.25);
+      background: linear-gradient(180deg, rgba(239,68,68,.12) 0%, rgba(239,68,68,.05) 100%);
+    }
+
+    .filebox{
+      border: 1px dashed rgba(17,24,39,.22);
+      background: rgba(17,24,39,.02);
+      padding: 12px;
+      border-radius: 14px;
+    }
+    .filemeta{
+      margin-top: 8px;
+      font-size: 12px;
+      color: rgba(17,24,39,.62);
+      display:flex; justify-content: space-between; gap: 10px;
+    }
+    .filemeta span{ white-space: nowrap; overflow:hidden; text-overflow: ellipsis; }
+
+    .download{
       display:none;
+      margin-top: 10px;
+      text-align:center;
+      font-weight: 800;
+      padding: 10px 12px;
+      border-radius: 12px;
+      text-decoration: none;
+      border: 1px solid rgba(17,24,39,.14);
+      background: rgba(17,24,39,.03);
+      color: rgba(17,24,39,.88);
     }
-    #revealImg.active { display:block; }
-    .pill { display:inline-block; padding: 2px 8px; border: 1px solid #ddd; border-radius: 999px; font-size: 12px; }
+    .download:hover{ box-shadow: 0 10px 18px rgba(17,24,39,.10); }
+
+    /* Stage (puzzle area) */
+    .stage{
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(17,24,39,.10);
+      min-height: calc(100vh - 64px - 28px);
+      display:flex;
+      flex-direction: column;
+      background: linear-gradient(180deg, rgba(255,255,255,.65) 0%, rgba(255,255,255,.28) 100%);
+    }
+
+    /* “Player toolbar” inspired */
+    .toolbar{
+      height: 54px;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      padding: 0 10px;
+      background: var(--toolbar-bg);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--toolbar-border);
+      color: rgba(255,255,255,.92);
+    }
+    .tool-left, .tool-right{ display:flex; align-items:center; gap: 8px; }
+    .iconbtn{
+      width: 40px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: var(--button-bg);
+      display:grid;
+      place-items:center;
+      color: var(--button-text);
+      cursor: pointer;
+      user-select:none;
+    }
+    .iconbtn:hover{ background: var(--button-bg-hover); }
+    .iconbtn:active{ transform: translateY(1px); }
+    .iconbtn svg{ width: 18px; height: 18px; opacity: .95; }
+
+    .pill{
+      font-variant-numeric: tabular-nums;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: var(--pill-bg);
+      color: var(--pill-text);
+      font-weight: 800;
+      font-size: 12px;
+      display:flex; align-items:center; gap: 8px;
+    }
+    .statusline{
+      font-size: 12px;
+      color: rgba(255,255,255,.80);
+      font-weight: 700;
+      padding: 0 8px;
+      max-width: 45vw;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Felt table (game surface) */
+    .surface{
+      position: relative;
+      flex: 1;
+      padding: 10px;
+      background:
+        radial-gradient(1200px 600px at 20% 10%, rgba(255,255,255,.15) 0%, rgba(255,255,255,0) 55%),
+        radial-gradient(1000px 520px at 80% 20%, rgba(0,0,0,.18) 0%, rgba(0,0,0,0) 50%),
+        linear-gradient(180deg, var(--felt) 0%, var(--felt2) 100%);
+    }
+    /* subtle texture */
+    .surface:before{
+      content:"";
+      position:absolute; inset:0;
+      background-image:
+        repeating-linear-gradient(45deg, rgba(255,255,255,.04) 0 2px, rgba(0,0,0,.02) 2px 4px);
+      opacity: .30;
+      pointer-events:none;
+    }
+
+    /* Puzzle container */
+    #puzzle{
+      position: relative;
+      height: 100%;
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.14);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.10);
+      overflow: hidden;
+    }
+
+    /* Overlay (messages / pause / time over) */
+    #overlay{
+      position:absolute;
+      inset: 10px 10px 10px 10px;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+      border-radius: 12px;
+      background: rgba(0,0,0,.72);
+      color: rgba(255,255,255,.92);
+      text-align: center;
+      z-index: 50;
+    }
+    #overlay.active{ display:flex; }
+    #overlay .box{
+      width: min(520px, 92%);
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 14px;
+      padding: 14px 14px 12px;
+      box-shadow: 0 22px 55px rgba(0,0,0,.45);
+    }
+    #overlay h2{
+      margin: 6px 0 8px;
+      font-size: 18px;
+      letter-spacing: .2px;
+    }
+    #overlay p{
+      margin: 6px 0;
+      font-size: 13px;
+      color: rgba(255,255,255,.84);
+      line-height: 1.35;
+    }
+
+    #revealImg{
+      max-width: 92%;
+      max-height: 92%;
+      border-radius: 12px;
+      box-shadow: 0 18px 55px rgba(0,0,0,.50);
+      display:none;
+      position:absolute;
+      left:50%; top:50%;
+      transform: translate(-50%,-50%);
+      z-index: 60;
+      border: 1px solid rgba(255,255,255,.14);
+    }
+    #revealImg.active{ display:block; }
+
+    /* Mobile: stack */
+    @media (max-width: 980px){
+      .app{ grid-template-columns: 1fr; }
+      .panel{ min-height: unset; }
+      .stage{ min-height: 64vh; }
+      .statusline{ max-width: 60vw; }
+    }
   </style>
 </head>
 <body>
 
-<div class="grid">
-  <div class="card">
-    <h2>Crear reto (tú)</h2>
-
-    <label>Foto</label>
-    <input id="createImage" type="file" accept="image/*" />
-
-    <div class="row">
-      <div>
-        <label>Piezas X</label>
-        <input id="piecesX" type="number" min="2" max="30" value="6" />
-      </div>
-      <div>
-        <label>Piezas Y</label>
-        <input id="piecesY" type="number" min="2" max="30" value="5" />
-      </div>
+<header class="brandbar">
+  <div class="brand-left">
+    <div class="logo" aria-hidden="true">
+      <!-- simple “puzzle” mark -->
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M7 7h3.2c.3-1.2 1.4-2 2.8-2 1.7 0 3 1.3 3 3 0 1.4-.8 2.5-2 2.8V14h3v3.2c1.2.3 2 1.4 2 2.8 0 1.7-1.3 3-3 3-1.4 0-2.5-.8-2.8-2H14v-3h-4v3.2c-1.2.3-2 1.4-2 2.8 0 1.7 1.3 3 3 3 1.4 0 2.5-.8 2.8-2H17" stroke="rgba(255,255,255,.92)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
     </div>
-
-    <label>Tiempo límite para resolver (segundos)</label>
-    <input id="solveSeconds" type="number" min="10" max="7200" value="300" />
-
-    <label>Tiempo para ver la foto al ganar (segundos)</label>
-    <input id="revealSeconds" type="number" min="1" max="600" value="10" />
-
-    <div class="row">
-      <div>
-        <label>Max tamaño imagen (px, recomendado)</label>
-        <input id="maxDim" type="number" min="600" max="4000" value="1600" />
-      </div>
-      <div>
-        <label>Calidad JPEG (0.5–1.0)</label>
-        <input id="jpegQ" type="number" min="0.5" max="1.0" step="0.05" value="0.9" />
-      </div>
+    <div class="brand-title">
+      <strong>Jigsaw Challenge</strong>
+      <span>Reto privado (foto cifrada) · Tiempo límite · Revelado controlado</span>
     </div>
-
-    <label>Contraseña (para cifrar el reto)</label>
-    <input id="createPass" type="password" placeholder="mín. 8 caracteres" />
-
-    <button id="btnCreate">Generar archivo de reto (.jpuz)</button>
-    <a id="downloadLink" style="display:none;margin-top:10px;display:block;">Descargar reto</a>
-
-    <div class="sep"></div>
-
-    <h2>Jugar reto (la otra persona)</h2>
-
-    <label>Archivo .jpuz</label>
-    <input id="playFile" type="file" accept=".jpuz,application/json" />
-
-    <label>Contraseña</label>
-    <input id="playPass" type="password" />
-
-    <div class="row">
-      <button id="btnStart">Empezar</button>
-      <button id="btnReset" type="button">Reiniciar</button>
-    </div>
-
-    <p class="muted">
-      Privacidad: la foto va dentro del .jpuz cifrada y se descifra solo en el navegador.
-      WebCrypto requiere HTTPS; GitHub Pages cumple ese requisito. :contentReference[oaicite:7]{index=7}
-    </p>
   </div>
+  <div class="brand-right">
+    <span class="kbd">B</span><span class="kbd">P</span><span class="kbd">T</span><span class="kbd">Esc</span>
+  </div>
+</header>
 
-  <div class="card">
-    <div id="hud">
-      <div id="status">Estado: esperando…</div>
-      <div id="timer" class="pill">Tiempo: —</div>
+<main class="app">
+  <!-- Sidebar -->
+  <aside class="panel">
+    <div class="panel-header">
+      <div class="tabs" role="tablist" aria-label="Modo">
+        <button class="tab active" id="tabCreate" role="tab" aria-selected="true">Crear reto</button>
+        <button class="tab" id="tabPlay" role="tab" aria-selected="false">Jugar</button>
+      </div>
     </div>
 
-    <div id="puzzleWrap">
-      <div id="puzzle"></div>
-      <div id="overlay"></div>
+    <div class="panel-body">
+      <!-- CREATE -->
+      <section id="paneCreate">
+        <div class="section-title">Imagen y reglas</div>
+
+        <div class="filebox">
+          <label for="createImage">Foto (se comprimirá y cifrará en local)</label>
+          <input id="createImage" type="file" accept="image/*" />
+          <div class="filemeta">
+            <span id="createFileName">Ningún archivo seleccionado</span>
+            <span id="createFileSize"></span>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Piezas X</label>
+            <input id="piecesX" type="number" min="2" max="30" value="6" />
+          </div>
+          <div>
+            <label>Piezas Y</label>
+            <input id="piecesY" type="number" min="2" max="30" value="5" />
+          </div>
+        </div>
+
+        <label>Tiempo límite (seg)</label>
+        <input id="solveSeconds" type="number" min="10" max="7200" value="300" />
+
+        <label>Tiempo de revelado al ganar (seg)</label>
+        <input id="revealSeconds" type="number" min="1" max="600" value="10" />
+
+        <div class="row">
+          <div>
+            <label>Mystery puzzle</label>
+            <select id="mystery">
+              <option value="1" selected>Activado (sin “box top”)</option>
+              <option value="0">Desactivado (permitir “box top”)</option>
+            </select>
+            <div class="hint">Equivalente al “Mystery puzzle” de Jigsaw Explorer. :contentReference[oaicite:2]{index=2}</div>
+          </div>
+          <div>
+            <label>Fondo inicial</label>
+            <select id="bgTheme">
+              <option value="blue" selected>Azul clásico</option>
+              <option value="slate">Gris pizarra</option>
+              <option value="forest">Verde bosque</option>
+            </select>
+            <div class="hint">Jigsaw Explorer permite cambiar colores de tema. :contentReference[oaicite:3]{index=3}</div>
+          </div>
+        </div>
+
+        <div class="section-title">Privacidad y tamaño</div>
+
+        <div class="row">
+          <div>
+            <label>Max dimensión imagen (px)</label>
+            <input id="maxDim" type="number" min="600" max="4000" value="1600" />
+          </div>
+          <div>
+            <label>Calidad JPEG</label>
+            <input id="jpegQ" type="number" min="0.5" max="1.0" step="0.05" value="0.9" />
+          </div>
+        </div>
+
+        <label>Contraseña (cifrado del reto)</label>
+        <input id="createPass" type="password" placeholder="mínimo 8 caracteres" />
+
+        <button class="btn btn-primary" id="btnCreate">Generar reto (.jpuz)</button>
+        <a class="download" id="downloadLink">Descargar reto.jpuz</a>
+
+        <div class="hint" style="margin-top:10px">
+          Sugerencia: envía el <b>.jpuz</b> y la contraseña por canales distintos.
+          WebCrypto funciona en HTTPS (GitHub Pages). :contentReference[oaicite:4]{index=4}
+        </div>
+      </section>
+
+      <!-- PLAY -->
+      <section id="panePlay" style="display:none">
+        <div class="section-title">Cargar reto</div>
+
+        <div class="filebox">
+          <label for="playFile">Archivo .jpuz</label>
+          <input id="playFile" type="file" accept=".jpuz,application/json" />
+          <div class="filemeta">
+            <span id="playFileName">Ningún archivo seleccionado</span>
+            <span id="playFileSize"></span>
+          </div>
+        </div>
+
+        <label>Contraseña</label>
+        <input id="playPass" type="password" />
+
+        <div class="row">
+          <button class="btn btn-primary" id="btnStart">Empezar</button>
+          <button class="btn btn-danger" id="btnReset" type="button">Reiniciar</button>
+        </div>
+
+        <div class="section-title">Atajos</div>
+        <div class="hint">
+          <b>B</b> = mostrar “box top” momentáneamente ·
+          <b>P</b> = pausar ·
+          <b>T</b> = cambiar tema ·
+          <b>Esc</b> = cerrar overlays.  
+          (Inspirado en atajos del player de Jigsaw Explorer). :contentReference[oaicite:5]{index=5}
+        </div>
+      </section>
+    </div>
+  </aside>
+
+  <!-- Stage -->
+  <section class="stage" id="stage">
+    <div class="toolbar" role="toolbar" aria-label="Controles del puzzle">
+      <div class="tool-left">
+        <div class="iconbtn" id="btnMenu" title="Mostrar panel lateral">
+          <!-- menu -->
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M5 7h14M5 12h14M5 17h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+
+        <div class="iconbtn" id="btnBoxTop" title="Mostrar box top (B)">
+          <!-- image -->
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-9Z" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M8 14l2-2 2.2 2.2L15.5 10 20 14.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9 9.2h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </div>
+
+        <div class="iconbtn" id="btnPause" title="Pausar/Reanudar (P)">
+          <!-- pause/play -->
+          <svg id="pauseIcon" viewBox="0 0 24 24" fill="none">
+            <path d="M7.5 6.5v11M16.5 6.5v11" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+          </svg>
+          <svg id="playIcon" viewBox="0 0 24 24" fill="none" style="display:none">
+            <path d="M9 7.5v9l8-4.5-8-4.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <div class="iconbtn" id="btnTheme" title="Cambiar tema (T)">
+          <!-- palette -->
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 3.5a8.5 8.5 0 1 0 0 17c1.7 0 2.6-1 2.6-2 0-1.2-.9-2.1-2.1-2.1H11a3 3 0 0 1 0-6h1.6c1.2 0 2.1-.9 2.1-2.1 0-1-.9-2-2.6-2Z" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M7.8 10.2h.01M9.4 7.8h.01M14.6 7.8h.01M16.2 10.2h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </div>
+
+        <div class="statusline" id="status">Estado: esperando…</div>
+      </div>
+
+      <div class="tool-right">
+        <div class="pill" id="pillPieces">Piezas: —</div>
+        <div class="pill" id="timer">Tiempo: —</div>
+        <div class="iconbtn" id="btnFull" title="Pantalla completa">
+          <!-- fullscreen -->
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M9 5H5v4M15 5h4v4M9 19H5v-4M15 19h4v-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="surface" id="surface">
+      <div id="puzzle" aria-label="Área del puzzle"></div>
+      <div id="overlay" aria-live="polite"></div>
       <img id="revealImg" alt="Revelado" />
     </div>
-  </div>
-</div>
+  </section>
+</main>
 
 <script>
+  // =========================
+  // Tabs (Create / Play)
+  // =========================
+  const tabCreate = document.getElementById("tabCreate");
+  const tabPlay = document.getElementById("tabPlay");
+  const paneCreate = document.getElementById("paneCreate");
+  const panePlay = document.getElementById("panePlay");
+
+  function showPane(which){
+    const isCreate = which === "create";
+    tabCreate.classList.toggle("active", isCreate);
+    tabPlay.classList.toggle("active", !isCreate);
+    tabCreate.setAttribute("aria-selected", String(isCreate));
+    tabPlay.setAttribute("aria-selected", String(!isCreate));
+    paneCreate.style.display = isCreate ? "block" : "none";
+    panePlay.style.display = isCreate ? "none" : "block";
+  }
+  tabCreate.addEventListener("click", () => showPane("create"));
+  tabPlay.addEventListener("click", () => showPane("play"));
+
+  // Sidebar toggle (simple: scroll to panel on mobile; on desktop it's always visible)
+  document.getElementById("btnMenu").addEventListener("click", () => {
+    document.querySelector(".panel").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
   // =========================
   // Base64 helpers
   // =========================
@@ -151,7 +633,6 @@
 
   async function deriveKey(pass, salt) {
     const enc = new TextEncoder();
-    // PBKDF2 params en deriveKey están documentados en MDN. :contentReference[oaicite:8]{index=8}
     const keyMaterial = await crypto.subtle.importKey(
       "raw", enc.encode(pass), { name: "PBKDF2" }, false, ["deriveKey"]
     );
@@ -190,7 +671,6 @@
     const key = await deriveKey(pass, salt);
 
     const ct = b642ab(pkg.ct);
-    // Ejemplos de cifrado/descifrado con PBKDF2 están en MDN (concepto y flujo). :contentReference[oaicite:9]{index=9}
     const plaintext = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ct);
 
     const dec = new TextDecoder();
@@ -234,27 +714,47 @@
   }
 
   // =========================
-  // UI + Game state
+  // UI refs + game state
   // =========================
   const statusEl = document.getElementById("status");
   const timerEl = document.getElementById("timer");
+  const pillPiecesEl = document.getElementById("pillPieces");
   const overlayEl = document.getElementById("overlay");
   const revealImgEl = document.getElementById("revealImg");
+  const surfaceEl = document.getElementById("surface");
+  const stageEl = document.getElementById("stage");
+
+  const pauseBtn = document.getElementById("btnPause");
+  const pauseIcon = document.getElementById("pauseIcon");
+  const playIcon = document.getElementById("playIcon");
+  const boxTopBtn = document.getElementById("btnBoxTop");
+  const themeBtn = document.getElementById("btnTheme");
+  const fullBtn = document.getElementById("btnFull");
 
   let countdown = null;
   let solved = false;
-  let canvasHB = null;
+  let paused = false;
+
+  let hb = null;
+  let currentPayload = null;     // reto en memoria
+  let currentImgSrc = null;      // dataURL imagen descifrada
+  let remaining = 0;
 
   function setStatus(s) { statusEl.textContent = "Estado: " + s; }
-  function showOverlay(html) {
-    overlayEl.innerHTML = html;
+
+  function showOverlay(title, html){
+    overlayEl.innerHTML = `
+      <div class="box">
+        <h2>${title}</h2>
+        <p>${html}</p>
+      </div>`;
     overlayEl.classList.add("active");
   }
-  function hideOverlay() {
+  function hideOverlay(){
     overlayEl.classList.remove("active");
     overlayEl.innerHTML = "";
   }
-  function stopCountdown() {
+  function stopCountdown(){
     if (countdown) clearInterval(countdown);
     countdown = null;
   }
@@ -264,29 +764,135 @@
     return `${m}:${String(s).padStart(2,"0")}`;
   }
 
-  function hardResetBoard() {
+  function applyTheme(theme){
+    stageEl.classList.remove("theme-slate", "theme-forest");
+    if (theme === "slate") stageEl.classList.add("theme-slate");
+    if (theme === "forest") stageEl.classList.add("theme-forest");
+  }
+
+  const themeCycle = ["blue","slate","forest"];
+  function cycleTheme(){
+    const idx = themeCycle.indexOf(currentPayload?.bgTheme || "blue");
+    const next = themeCycle[(idx + 1 + themeCycle.length) % themeCycle.length];
+    if (currentPayload) currentPayload.bgTheme = next;
+    applyTheme(next);
+  }
+
+  function hardResetBoard(){
     solved = false;
+    paused = false;
     stopCountdown();
+    remaining = 0;
+
     timerEl.textContent = "Tiempo: —";
+    pillPiecesEl.textContent = "Piezas: —";
     hideOverlay();
+
     revealImgEl.classList.remove("active");
     revealImgEl.src = "";
+    currentImgSrc = null;
+    currentPayload = null;
+
     document.getElementById("puzzle").innerHTML = "";
-    canvasHB = null;
+    hb = null;
+
+    pauseIcon.style.display = "block";
+    playIcon.style.display = "none";
     setStatus("esperando…");
   }
 
   document.getElementById("btnReset").addEventListener("click", hardResetBoard);
 
+  // Fullscreen
+  fullBtn.addEventListener("click", async () => {
+    try{
+      if (!document.fullscreenElement) await surfaceEl.requestFullscreen();
+      else await document.exitFullscreen();
+    }catch(e){}
+  });
+
+  // Pause
+  function setPaused(nextPaused){
+    if (!currentPayload || solved) return;
+    paused = nextPaused;
+
+    if (paused){
+      stopCountdown();
+      showOverlay("Pausado", "Pulsa <b>P</b> para reanudar.");
+      pauseIcon.style.display = "none";
+      playIcon.style.display = "block";
+      setStatus("pausado.");
+    } else {
+      hideOverlay();
+      pauseIcon.style.display = "block";
+      playIcon.style.display = "none";
+      setStatus("en juego…");
+      startCountdownTick();
+    }
+  }
+  pauseBtn.addEventListener("click", () => setPaused(!paused));
+
+  // “Box top” momentary preview
+  async function showBoxTop(){
+    if (!currentPayload || !currentImgSrc) return;
+    if (currentPayload.mystery){
+      showOverlay("Mystery puzzle", "El “box top” está deshabilitado para este reto.");
+      setTimeout(() => { if (!paused) hideOverlay(); }, 1600);
+      return;
+    }
+    revealImgEl.src = currentImgSrc;
+    revealImgEl.classList.add("active");
+    showOverlay("Box top", "Mostrando la imagen durante 2 segundos…");
+    setTimeout(() => {
+      revealImgEl.classList.remove("active");
+      if (!paused) hideOverlay();
+    }, 2000);
+  }
+  boxTopBtn.addEventListener("click", showBoxTop);
+
+  // Theme button
+  themeBtn.addEventListener("click", () => {
+    cycleTheme();
+  });
+
+  // Keyboard shortcuts (inspired by Jigsaw Explorer: b/p/t/esc) :contentReference[oaicite:6]{index=6}
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") hideOverlay();
+    if (e.key.toLowerCase() === "p") setPaused(!paused);
+    if (e.key.toLowerCase() === "b") showBoxTop();
+    if (e.key.toLowerCase() === "t") cycleTheme();
+  });
+
   // =========================
-  // Crear reto: genera .jpuz cifrado
+  // File name/size UI
+  // =========================
+  function fmtBytes(n){
+    if (!n) return "";
+    const units = ["B","KB","MB","GB"];
+    let i = 0;
+    let v = n;
+    while (v >= 1024 && i < units.length-1){ v/=1024; i++; }
+    return `${v.toFixed(i===0?0:1)} ${units[i]}`;
+  }
+  const createImageEl = document.getElementById("createImage");
+  createImageEl.addEventListener("change", () => {
+    const f = createImageEl.files[0];
+    document.getElementById("createFileName").textContent = f ? f.name : "Ningún archivo seleccionado";
+    document.getElementById("createFileSize").textContent = f ? fmtBytes(f.size) : "";
+  });
+  const playFileEl = document.getElementById("playFile");
+  playFileEl.addEventListener("change", () => {
+    const f = playFileEl.files[0];
+    document.getElementById("playFileName").textContent = f ? f.name : "Ningún archivo seleccionado";
+    document.getElementById("playFileSize").textContent = f ? fmtBytes(f.size) : "";
+  });
+
+  // =========================
+  // Crear reto (.jpuz)
   // =========================
   document.getElementById("btnCreate").addEventListener("click", async () => {
-    try {
-      if (!crypto?.subtle) {
-        // SubtleCrypto requiere contexto seguro (HTTPS). :contentReference[oaicite:10]{index=10}
-        throw new Error("WebCrypto no disponible. Abre la web por HTTPS (GitHub Pages).");
-      }
+    try{
+      if (!crypto?.subtle) throw new Error("WebCrypto no disponible. Abre por HTTPS (GitHub Pages).");
 
       const file = document.getElementById("createImage").files[0];
       const x = Number(document.getElementById("piecesX").value);
@@ -297,11 +903,14 @@
       const jpegQ = Number(document.getElementById("jpegQ").value);
       const pass = document.getElementById("createPass").value;
 
+      const mystery = document.getElementById("mystery").value === "1";
+      const bgTheme = document.getElementById("bgTheme").value;
+
       if (!file) throw new Error("Selecciona una foto.");
       if (!pass || pass.length < 8) throw new Error("Contraseña mínima: 8 caracteres.");
-      if (!(x >= 2 && x <= 30 && y >= 2 && y <= 30)) throw new Error("Piezas X/Y fuera de rango.");
-      if (!(solveSeconds >= 10 && solveSeconds <= 7200)) throw new Error("Tiempo límite fuera de rango.");
-      if (!(revealSeconds >= 1 && revealSeconds <= 600)) throw new Error("Tiempo de revelado fuera de rango.");
+      if (!(x>=2 && x<=30 && y>=2 && y<=30)) throw new Error("Piezas X/Y fuera de rango.");
+      if (!(solveSeconds>=10 && solveSeconds<=7200)) throw new Error("Tiempo límite fuera de rango.");
+      if (!(revealSeconds>=1 && revealSeconds<=600)) throw new Error("Tiempo de revelado fuera de rango.");
 
       setStatus("procesando imagen…");
       const imgBytes = await fileToCompressedJpegBytes(file, maxDim, jpegQ);
@@ -312,7 +921,9 @@
         piecesX: x,
         piecesY: y,
         solveSeconds,
-        revealSeconds
+        revealSeconds,
+        mystery,
+        bgTheme
       };
 
       setStatus("cifrando…");
@@ -328,118 +939,144 @@
       a.textContent = "Descargar reto.jpuz";
 
       setStatus("reto generado. Envía el .jpuz + contraseña.");
-    } catch (e) {
+      showPane("play");
+    }catch(e){
       setStatus("error: " + e.message);
+      showOverlay("Error", e.message);
     }
   });
 
   // =========================
-  // Jugar reto: descifra y lanza puzzle con cuenta atrás
+  // Juego
   // =========================
-  document.getElementById("btnStart").addEventListener("click", async () => {
-    try {
-      if (!crypto?.subtle) throw new Error("WebCrypto no disponible (requiere HTTPS)."); // :contentReference[oaicite:11]{index=11}
+  function computeBoard(stageW, stageH, piecesX, piecesY){
+    // deja márgenes para dispersión de piezas (look “table”)
+    const usableW = Math.max(520, stageW - 40);
+    const usableH = Math.max(420, stageH - 40);
 
+    // pieceSize basado en el lado más restrictivo
+    const ps = Math.floor(Math.min((usableW - 80) / piecesX, (usableH - 140) / piecesY));
+    const pieceSize = Math.max(34, Math.min(ps, 92));
+    const width = pieceSize * piecesX + 60;
+    const height = pieceSize * piecesY + 120;
+    return { pieceSize, width, height };
+  }
+
+  function startCountdownTick(){
+    // evita duplicados
+    stopCountdown();
+    countdown = setInterval(() => {
+      if (!currentPayload || solved || paused) return;
+      remaining -= 1;
+      timerEl.textContent = "Tiempo: " + formatMMSS(Math.max(0, remaining));
+      if (remaining <= 0){
+        stopCountdown();
+        setStatus("fallo por tiempo.");
+        showOverlay("Tiempo agotado", "No se completó el puzzle dentro del límite. Pulsa <b>Reiniciar</b> para reintentar.");
+      }
+    }, 1000);
+  }
+
+  async function startGameFromPayload(payload){
+    hardResetBoard();
+    currentPayload = payload;
+
+    // aplica tema inicial
+    applyTheme(payload.bgTheme || "blue");
+
+    pillPiecesEl.textContent = `Piezas: ${payload.piecesX * payload.piecesY}`;
+    setStatus("cargando imagen…");
+
+    const img = new Image();
+    currentImgSrc = `data:${payload.mime};base64,${payload.img}`;
+    img.src = currentImgSrc;
+
+    img.onload = () => {
+      // preparar tablero
+      const surfaceRect = surfaceEl.getBoundingClientRect();
+      const { pieceSize, width, height } = computeBoard(surfaceRect.width, surfaceRect.height, payload.piecesX, payload.piecesY);
+
+      const puzzleDiv = document.getElementById("puzzle");
+      puzzleDiv.innerHTML = "";
+
+      hb = new headbreaker.Canvas("puzzle", {
+        width,
+        height,
+        pieceSize,
+        proximity: 18,
+        borderFill: 10,
+        strokeWidth: 1.5,
+        lineSoftness: 0.18,
+        image: img,
+        preventOffstageDrag: true,
+        fixed: true
+      });
+
+      hb.adjustImagesToPuzzleWidth();
+      hb.autogenerate({
+        horizontalPiecesCount: payload.piecesX,
+        verticalPiecesCount: payload.piecesY
+      });
+
+      hb.shuffle(0.82);
+      hb.draw();
+
+      // solved detection
+      hb.attachSolvedValidator();
+      hb.onValid(() => {
+        if (solved) return;
+        solved = true;
+        stopCountdown();
+        setStatus("resuelto a tiempo. revelando…");
+
+        revealImgEl.src = currentImgSrc;
+        revealImgEl.classList.add("active");
+        showOverlay("Correcto", `Foto completa visible durante <b>${payload.revealSeconds}s</b>.`);
+
+        setTimeout(() => {
+          revealImgEl.classList.remove("active");
+          showOverlay("Fin", "Reto completado.");
+          setStatus("finalizado.");
+        }, payload.revealSeconds * 1000);
+      });
+
+      // start countdown
+      remaining = payload.solveSeconds;
+      timerEl.textContent = "Tiempo: " + formatMMSS(remaining);
+      setStatus("en juego…");
+      startCountdownTick();
+      hideOverlay();
+    };
+
+    img.onerror = () => {
+      setStatus("error: no se pudo cargar la imagen descifrada.");
+      showOverlay("Error", "No se pudo cargar la imagen del reto.");
+    };
+  }
+
+  document.getElementById("btnStart").addEventListener("click", async () => {
+    try{
+      if (!crypto?.subtle) throw new Error("WebCrypto no disponible (requiere HTTPS).");
       const file = document.getElementById("playFile").files[0];
       const pass = document.getElementById("playPass").value;
       if (!file) throw new Error("Selecciona el archivo .jpuz.");
       if (!pass) throw new Error("Introduce la contraseña.");
 
-      hardResetBoard();
       setStatus("descifrando…");
+      showOverlay("Cargando", "Descifrando el reto…");
 
       const pkg = JSON.parse(await file.text());
       const payload = await decryptPayload(pass, pkg);
 
-      // Construye imagen desde base64
-      const img = new Image();
-      img.src = `data:${payload.mime};base64,${payload.img}`;
-
-      img.onload = () => {
-        // (Re)crear tablero
-        const puzzleDiv = document.getElementById("puzzle");
-        puzzleDiv.innerHTML = "";
-
-        const wrap = document.getElementById("puzzleWrap");
-        const availableW = Math.max(480, wrap.clientWidth - 10);
-
-        // Tamaño de pieza aproximado en función de X
-        const pieceSize = Math.max(34, Math.floor((availableW - 60) / payload.piecesX));
-        const width = pieceSize * payload.piecesX + 60;
-        const height = pieceSize * payload.piecesY + 120;
-
-        // Headbreaker: Canvas + autogenerate + adjustImages… :contentReference[oaicite:12]{index=12}
-        canvasHB = new headbreaker.Canvas("puzzle", {
-          width, height,
-          pieceSize,
-          proximity: 18,
-          borderFill: 10,
-          strokeWidth: 1.5,
-          lineSoftness: 0.18,
-          image: img,
-          preventOffstageDrag: true,
-          fixed: true,
-          // para escalado de imagen según documentación
-          maxPiecesCount: { x: payload.piecesX, y: payload.piecesY }
-        });
-
-        canvasHB.adjustImagesToPuzzleWidth();
-        canvasHB.autogenerate({
-          horizontalPiecesCount: payload.piecesX,
-          verticalPiecesCount: payload.piecesY
-        });
-        canvasHB.shuffle(0.8);
-        canvasHB.draw();
-
-        // Detección de resuelto (validador + onValid). :contentReference[oaicite:13]{index=13}
-        canvasHB.attachSolvedValidator();
-        canvasHB.onValid(() => {
-          if (solved) return;
-          solved = true;
-          stopCountdown();
-
-          setStatus("resuelto a tiempo. revelando…");
-          revealImgEl.src = img.src;
-          revealImgEl.classList.add("active");
-          showOverlay(`<div>
-            <h2>Correcto</h2>
-            <p>Foto completa visible durante <b>${payload.revealSeconds}s</b>.</p>
-          </div>`);
-
-          setTimeout(() => {
-            revealImgEl.classList.remove("active");
-            showOverlay(`<div><h2>Fin</h2><p>Reto completado.</p></div>`);
-            setStatus("finalizado.");
-          }, payload.revealSeconds * 1000);
-        });
-
-        // Cuenta atrás
-        let remaining = payload.solveSeconds;
-        timerEl.textContent = "Tiempo: " + formatMMSS(remaining);
-        setStatus("en juego…");
-
-        countdown = setInterval(() => {
-          if (solved) return;
-          remaining -= 1;
-          timerEl.textContent = "Tiempo: " + formatMMSS(Math.max(0, remaining));
-
-          if (remaining <= 0) {
-            stopCountdown();
-            showOverlay(`<div>
-              <h2>Tiempo agotado</h2>
-              <p>No se completó el puzzle dentro del límite.</p>
-              <p>Puedes pulsar <b>Reiniciar</b> y volver a intentar.</p>
-            </div>`);
-            setStatus("fallo por tiempo.");
-          }
-        }, 1000);
-      };
-
-      img.onerror = () => setStatus("error: no se pudo cargar la imagen descifrada.");
-    } catch (e) {
+      await startGameFromPayload(payload);
+    }catch(e){
       setStatus("error: " + e.message);
+      showOverlay("Error", e.message);
     }
   });
+
+  // Estado inicial
+  hardResetBoard();
 </script>
 
 </body>
