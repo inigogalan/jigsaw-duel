@@ -565,9 +565,22 @@
   </div>
 
   <!-- Dependencias permitidas: motor jigsaw Headbreaker + Konva -->
-  <script src="https://cdn.jsdelivr.net/npm/konva@8.4.3/konva.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/headbreaker@3.0.0/dist/headbreaker.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/konva@8.4.3/konva.min.js"></script>
+  <script defer src="https://flbulgarelli.github.io/headbreaker/js/headbreaker.js"></script>
 
+
+  <script defer>
+  // Guardia: evita “ReferenceError” y da un mensaje claro
+  const HB = window.headbreaker;
+  if (!HB || !HB.Canvas) {
+    alert("No se pudo cargar Headbreaker. Revisa la pestaña Network (headbreaker.js) y que estés en HTTPS.");
+    throw new Error("Headbreaker no cargó");
+  }
+
+  // …tu código del puzzle aquí, usando HB en vez de headbreaker…
+  // Ejemplo:
+  // const canvas = new HB.Canvas('canvasHost', {...});
+  </script>
   <script>
   (() => {
     'use strict';
