@@ -1,195 +1,181 @@
 <!doctype html>
 <html lang="es">
 <head>
-
-<script src="https://unpkg.com/konva@8.3.13/konva.min.js"></script>
-<script src="https://unpkg.com/headbreaker@3.2.1/dist/headbreaker.js"></script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>JPUZ — Puzzle cifrado (Create & Play)</title>
+  <meta name="color-scheme" content="dark light" />
+  <title>JPuz — Crear y Jugar (100% local)</title>
   <style>
     :root{
-      --bg0:#0b0f10;
-      --panel:#11181a;
-      --panel2:#0e1416;
-      --text:#eaf2f3;
-      --muted:#a9b7bb;
+      --bg0:#07090b;
+      --bg1:#0c1216;
+      --panel:rgba(12,16,20,.82);
       --line:rgba(255,255,255,.10);
-      --accent:#7dd3fc;
-
-      --btn:#182125;
-      --btn2:#1f2a2f;
-      --danger:#ef4444;
-      --ok:#22c55e;
+      --line2:rgba(255,255,255,.14);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.68);
+      --muted2:rgba(255,255,255,.54);
+      --good:#22c55e;
       --warn:#f59e0b;
+      --bad:#ef4444;
 
-      --overlay:rgba(0,0,0,.72);
-      --overlayLock:rgba(5,6,7,.96);
+      --btn:rgba(255,255,255,.09);
+      --btnH:rgba(255,255,255,.13);
+      --btnA:rgba(255,255,255,.18);
 
-      --feltA:#0b2f2f;
-      --feltB:#072323;
-      --feltC:#052020;
-
-      --radius:14px;
-      --shadow: 0 12px 40px rgba(0,0,0,.40);
+      --shadow: 0 18px 60px rgba(0,0,0,.42);
+      --radius: 14px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      --sans: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans";
-    }
+      --sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --frame: rgba(255,255,255,.22);
 
-    body[data-theme="blue"]{
-      --accent:#7dd3fc;
-      --feltA:#0b2f2f; --feltB:#072323; --feltC:#052020;
+      --feltBase:#0b1b2b;
+      --feltGlow:rgba(110,180,255,.10);
     }
-    body[data-theme="chalk"]{
-      --accent:#a3e635;
-      --feltA:#0a1414; --feltB:#071010; --feltC:#050c0c;
-    }
-    body[data-theme="forest"]{
-      --accent:#34d399;
-      --feltA:#0a2a16; --feltB:#072012; --feltC:#05180d;
-    }
+    body[data-theme="blue"]{ --feltBase:#0b1b2b; --feltGlow:rgba(110,180,255,.10); }
+    body[data-theme="slate"]{ --feltBase:#121416; --feltGlow:rgba(220,220,220,.08); }
+    body[data-theme="forest"]{ --feltBase:#0c1b12; --feltGlow:rgba(120,255,170,.10); }
 
     *{ box-sizing:border-box; }
     html,body{ height:100%; }
     body{
       margin:0;
       font-family:var(--sans);
+      background:
+        radial-gradient(1200px 800px at 12% 10%, rgba(255,255,255,.05), transparent 60%),
+        radial-gradient(900px 700px at 90% 5%, rgba(255,255,255,.04), transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg0));
       color:var(--text);
-      background: radial-gradient(1200px 800px at 10% 10%, rgba(125,211,252,.10), transparent 60%),
-                  radial-gradient(1200px 800px at 90% 20%, rgba(52,211,153,.08), transparent 60%),
-                  linear-gradient(180deg, var(--bg0), #070a0b 70%);
       overflow:hidden;
     }
 
-    .topbar{
+    /* Topbar */
+    #topbar{
       height:64px;
       display:flex;
       align-items:center;
       justify-content:space-between;
+      gap:12px;
       padding:10px 12px;
+      background: rgba(10,14,18,.82);
       border-bottom:1px solid var(--line);
-      background: linear-gradient(180deg, rgba(20,28,30,.92), rgba(12,16,18,.92));
       backdrop-filter: blur(10px);
       position:relative;
-      z-index:5;
+      z-index:10;
     }
-    .brand{
-      display:flex; gap:10px; align-items:center;
-      min-width: 220px;
+    #brand{
+      display:flex; align-items:center; gap:10px;
+      min-width: 210px;
     }
-    .badge{
+    #logo{
       width:34px;height:34px;border-radius:10px;
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.35), rgba(255,255,255,.05)),
-                  linear-gradient(135deg, rgba(125,211,252,.45), rgba(52,211,153,.25));
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.28), rgba(255,255,255,.10) 40%, rgba(0,0,0,.18) 70%),
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
       border:1px solid rgba(255,255,255,.12);
-      box-shadow: 0 10px 22px rgba(0,0,0,.35);
+      box-shadow: 0 10px 26px rgba(0,0,0,.30);
     }
-    .brand h1{
-      font-size:14px;
-      margin:0;
-      letter-spacing:.2px;
-      line-height:1.1;
-    }
-    .brand .sub{
-      margin:0;
-      font-size:12px;
-      color:var(--muted);
-    }
+    #brandText{ line-height:1.12; }
+    #brandText b{ font-size:14px; letter-spacing:.2px; }
+    #brandText span{ display:block; font-size:12px; color:var(--muted2); }
 
-    .player{
+    #centerBar{
+      flex:1;
       display:flex;
       align-items:center;
-      gap:10px;
-      flex: 1;
       justify-content:center;
-      min-width: 0;
+      gap:10px;
+      min-width:0;
     }
-    .status{
+    #statusPill{
       display:flex;
-      flex-direction:column;
-      min-width: 180px;
-      max-width: 360px;
-      overflow:hidden;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.07);
+      max-width: 60vw;
+      min-width: 220px;
     }
-    .status .label{
-      font-size:12px;
+    #statusDot{
+      width:9px;height:9px;border-radius:99px;
+      background: rgba(255,255,255,.50);
+      box-shadow: 0 0 0 3px rgba(255,255,255,.06);
+      flex:0 0 auto;
+    }
+    #statusText{
+      font-size:13px;
       color:var(--muted);
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
     }
-    .status .value{
-      font-size:14px;
-      font-weight:650;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-
-    .timer{
+    #timer{
       font-family:var(--mono);
-      font-size:16px;
-      padding:8px 10px;
-      border:1px solid rgba(255,255,255,.12);
+      font-size:14px;
+      padding:7px 10px;
       border-radius:12px;
-      background: rgba(0,0,0,.25);
-      min-width:110px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.22);
+      min-width:100px;
       text-align:center;
     }
 
-    .controls{
-      display:flex;
-      gap:8px;
-      align-items:center;
-      justify-content:flex-end;
-      min-width: 260px;
-    }
-
-    button, .btn{
+    .btn{
       appearance:none;
-      border:1px solid rgba(255,255,255,.12);
-      background: linear-gradient(180deg, rgba(31,42,47,.95), rgba(18,26,29,.95));
+      border:1px solid var(--line);
+      background: var(--btn);
       color:var(--text);
+      padding:8px 10px;
       border-radius:12px;
-      padding:9px 10px;
-      font-size:13px;
       cursor:pointer;
-      transition: transform .06s ease, filter .15s ease, border-color .15s ease;
-      user-select:none;
+      transition: background .15s ease, transform .05s ease, border-color .15s ease;
       display:inline-flex;
       align-items:center;
       gap:8px;
+      user-select:none;
       white-space:nowrap;
+      font-size:13px;
     }
-    button:hover{ filter: brightness(1.06); border-color: rgba(255,255,255,.22); }
-    button:active{ transform: translateY(1px); }
-    button[disabled]{ opacity:.55; cursor:not-allowed; }
+    .btn:hover{ background: var(--btnH); border-color: var(--line2); }
+    .btn:active{ transform: translateY(1px); background: var(--btnA); }
+    .btn[disabled]{ opacity:.5; cursor:not-allowed; }
+    .k{
+      font-family:var(--mono);
+      font-size:11px;
+      color:var(--muted2);
+      border:1px solid var(--line);
+      padding:2px 6px;
+      border-radius:8px;
+      background: rgba(0,0,0,.18);
+    }
+    .btnPrimary{
+      background: rgba(34,197,94,.14);
+      border-color: rgba(34,197,94,.28);
+    }
+    .btnPrimary:hover{ background: rgba(34,197,94,.20); border-color: rgba(34,197,94,.34); }
 
-    .btn-ghost{
-      background: rgba(0,0,0,.14);
-      border:1px solid rgba(255,255,255,.12);
-    }
-    .btn-accent{
-      border-color: rgba(125,211,252,.35);
-      background: linear-gradient(180deg, rgba(125,211,252,.18), rgba(31,42,47,.90));
-    }
-    .btn-danger{
-      border-color: rgba(239,68,68,.35);
-      background: linear-gradient(180deg, rgba(239,68,68,.16), rgba(31,42,47,.90));
+    #rightControls{
+      display:flex; align-items:center; gap:8px;
+      min-width: 260px;
+      justify-content:flex-end;
     }
 
-    .layout{
+    /* Layout */
+    #layout{
       height: calc(100% - 64px);
       display:grid;
       grid-template-columns: 360px 1fr;
-      gap:0;
+      min-height:0;
     }
-
-    .sidebar{
+    #panel{
       border-right:1px solid var(--line);
-      background: linear-gradient(180deg, rgba(16,22,24,.92), rgba(10,14,16,.92));
+      background: rgba(10,14,18,.62);
+      backdrop-filter: blur(10px);
+      min-height:0;
       overflow:auto;
-      padding:14px;
+      padding:12px;
     }
     .tabs{
       display:flex;
@@ -201,1157 +187,1298 @@
       text-align:center;
       padding:10px;
       border-radius:12px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.20);
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      color:var(--muted);
       cursor:pointer;
       user-select:none;
       font-size:13px;
-      color:var(--muted);
     }
     .tab.active{
       color:var(--text);
-      border-color: rgba(125,211,252,.35);
-      background: rgba(125,211,252,.10);
+      background: rgba(255,255,255,.12);
+      border-color: var(--line2);
     }
 
-    .panel{
-      background: rgba(0,0,0,.22);
-      border:1px solid rgba(255,255,255,.10);
+    .card{
+      background: rgba(255,255,255,.04);
+      border:1px solid var(--line);
       border-radius: var(--radius);
       padding:12px;
-      box-shadow: var(--shadow);
+      box-shadow: 0 14px 46px rgba(0,0,0,.22);
       margin-bottom:12px;
     }
-    .panel h2{
-      font-size:13px;
+    .card h3{
       margin:0 0 10px 0;
+      font-size:13px;
       letter-spacing:.2px;
     }
-    .grid2{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-    }
     label{
-      display:block;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
       font-size:12px;
       color:var(--muted);
-      margin-bottom:6px;
+      margin-bottom:10px;
     }
-    input, select{
+    input[type="text"], input[type="password"], input[type="number"], select, input[type="file"]{
       width:100%;
       padding:10px 10px;
       border-radius:12px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(0,0,0,.25);
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.22);
       color:var(--text);
       outline:none;
     }
-    input[type="checkbox"]{ width:auto; }
-    .row{
-      display:flex;
-      gap:10px;
-      align-items:center;
+    input[type="file"]{
+      border-style:dashed;
+      background: rgba(0,0,0,.14);
     }
+    .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
     .hint{
       font-size:12px;
-      color:var(--muted);
+      color:var(--muted2);
       line-height:1.35;
     }
-    .hr{
-      height:1px;
-      background: var(--line);
-      margin:12px 0;
-    }
-    .small{
-      font-size:12px;
-      color:var(--muted);
-    }
-    .filebox{
-      padding:10px;
-      border-radius:12px;
-      border:1px dashed rgba(255,255,255,.18);
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
       background: rgba(0,0,0,.18);
-      font-size:12px;
-      color:var(--muted);
+      font-family:var(--mono);
+      font-size:11px;
+      color:var(--muted2);
     }
 
-    .board{
+    /* Board */
+    #board{
       position:relative;
       overflow:hidden;
       background:
-        radial-gradient(900px 600px at 20% 20%, rgba(255,255,255,.06), transparent 60%),
-        radial-gradient(900px 600px at 80% 20%, rgba(255,255,255,.04), transparent 65%),
-        radial-gradient(circle at 50% 30%, rgba(0,0,0,.10), transparent 40%),
-        linear-gradient(180deg, var(--feltA), var(--feltB));
+        radial-gradient(1100px 800px at 16% 22%, var(--feltGlow), transparent 55%),
+        radial-gradient(900px 700px at 84% 20%, rgba(255,255,255,.05), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.10)),
+        linear-gradient(180deg, var(--feltBase), rgba(0,0,0,.35));
     }
     #canvasHost{
       position:absolute;
       inset:0;
-      touch-action:none;
+      /* important para móvil: evita scroll/zoom del navegador al arrastrar */
+      touch-action: none;
       outline:none;
     }
     #targetFrame{
       position:absolute;
       left:50%;
       top:50%;
-      transform: translate(-50%, -50%);
-      border-radius: 18px;
-      border: 2px dashed rgba(255,255,255,.18);
+      transform: translate(-50%,-50%);
+      border-radius: 16px;
+      border: 2px dashed var(--frame);
+      background: rgba(0,0,0,.04);
       box-shadow: inset 0 0 0 1px rgba(0,0,0,.25);
       pointer-events:none;
-      opacity: .9;
     }
     #targetFrame::after{
       content:"Marco guía";
       position:absolute;
       left:12px;
       top:10px;
-      font-size:12px;
-      color: rgba(255,255,255,.45);
+      font-size:11px;
+      color: rgba(255,255,255,.58);
       background: rgba(0,0,0,.22);
       border:1px solid rgba(255,255,255,.12);
       padding:5px 8px;
-      border-radius: 999px;
+      border-radius:999px;
     }
 
-    /* Overlay system */
+    /* Overlay */
     #overlay{
       position:absolute;
       inset:0;
       display:none;
       align-items:center;
       justify-content:center;
-      z-index:10;
+      z-index:20;
       padding:18px;
     }
     #overlay.active{ display:flex; }
-    #overlay .backdrop{
-      position:absolute;
-      inset:0;
-      background: var(--overlay);
+    #overlay.lock .backdrop{ background: rgba(0,0,0,.92); }
+    .backdrop{
+      position:absolute; inset:0;
+      background: rgba(0,0,0,.70);
       backdrop-filter: blur(10px);
     }
-    #overlay.lock .backdrop{
-      background: var(--overlayLock);
-      backdrop-filter:none;
-    }
-    #overlay .modal{
+    .modal{
       position:relative;
-      width:min(720px, 100%);
-      max-height:min(86vh, 820px);
+      width:min(760px, 100%);
+      max-height:min(86vh, 860px);
       overflow:auto;
       border-radius: 18px;
       border:1px solid rgba(255,255,255,.14);
-      background: linear-gradient(180deg, rgba(18,26,29,.98), rgba(10,14,16,.98));
-      box-shadow: 0 40px 120px rgba(0,0,0,.55);
+      background: rgba(12,16,20,.96);
+      box-shadow: var(--shadow);
       padding:14px;
     }
-    #overlay .modal h3{
+    .modal h2{
       margin:0 0 8px 0;
       font-size:16px;
       letter-spacing:.2px;
     }
-    #overlay .modal .content{
+    .modal .content{
       color:var(--muted);
       font-size:13px;
-      line-height:1.4;
+      line-height:1.45;
     }
-    #overlay .modal .actions{
+    .modal .actions{
       display:flex;
       justify-content:flex-end;
       gap:10px;
       margin-top:12px;
       flex-wrap:wrap;
     }
-    #overlay img.preview{
+    .modal img{
       width:100%;
-      height:auto;
-      border-radius: 14px;
+      max-height:58vh;
+      object-fit:contain;
+      border-radius:14px;
       border:1px solid rgba(255,255,255,.12);
       background: rgba(0,0,0,.18);
       display:block;
+      margin-top:10px;
     }
+    .spinner{
+      width:14px;height:14px;
+      border-radius:99px;
+      border:2px solid rgba(255,255,255,.18);
+      border-top-color: rgba(255,255,255,.85);
+      display:inline-block;
+      animation: spin .8s linear infinite;
+      vertical-align:-2px;
+      margin-right:8px;
+    }
+    @keyframes spin{ to{ transform:rotate(360deg);} }
 
-    @media (max-width: 900px){
+    /* Responsive */
+    @media (max-width: 920px){
       body{ overflow:auto; }
-      .layout{
+      #layout{
         grid-template-columns: 1fr;
         grid-template-rows: auto 1fr;
+        height:auto;
       }
-      .sidebar{
+      #panel{
         border-right:none;
         border-bottom:1px solid var(--line);
       }
-      .controls{ min-width: 0; }
-      .brand{ min-width: 0; }
+      #rightControls{ min-width:0; }
+      #brand{ min-width:0; }
+      #statusPill{ max-width: 50vw; min-width: 180px; }
     }
   </style>
 </head>
 
 <body data-theme="blue">
-  <div class="topbar">
-    <div class="brand">
-      <div class="badge" aria-hidden="true"></div>
-      <div>
-        <h1>JPUZ</h1>
-        <p class="sub">Crear / Jugar retos cifrados 100% local</p>
+  <header id="topbar" aria-label="Controles">
+    <div id="brand">
+      <div id="logo" aria-hidden="true"></div>
+      <div id="brandText">
+        <b>JPuz</b>
+        <span>Crear · compartir .jpuz · jugar (local)</span>
       </div>
     </div>
 
-    <div class="player" aria-live="polite" aria-atomic="true">
-      <div class="status">
-        <div class="label">Estado</div>
-        <div class="value" id="statusText">Listo</div>
+    <div id="centerBar">
+      <div id="statusPill" aria-live="polite" aria-atomic="true">
+        <span id="statusDot" aria-hidden="true"></span>
+        <span id="statusText">Cargando librerías…</span>
       </div>
-      <div class="timer" id="timerText" title="Tiempo restante">--:--</div>
+      <div id="timer" title="Tiempo restante (mm:ss)">
+        <span id="timeText">--:--</span>
+      </div>
     </div>
 
-    <div class="controls">
-      <button id="btnBoxTop" class="btn-ghost" title="Box top (B)" disabled>🖼️ Box top</button>
-      <button id="btnPause" class="btn-ghost" title="Pausar/Reanudar (P)" disabled>⏯️ Pausa</button>
-      <button id="btnTheme" class="btn-ghost" title="Cambiar tema (T)">🎨 Tema</button>
-      <button id="btnReframe" class="btn-ghost" title="Reencuadrar piezas (R)" disabled>🧲 Reencuadrar</button>
-      <button id="btnFull" class="btn-ghost" title="Pantalla completa" >⛶</button>
+    <div id="rightControls">
+      <button class="btn" id="btnBoxTop" title="Box top (B)" disabled>Box top <span class="k">B</span></button>
+      <button class="btn" id="btnPause" title="Pausar/Reanudar (P)" disabled>Pausa <span class="k">P</span></button>
+      <button class="btn" id="btnTheme" title="Cambiar tema (T)">Tema <span class="k">T</span></button>
+      <button class="btn" id="btnReframe" title="Reencuadrar (R)" disabled>Reencuadrar <span class="k">R</span></button>
+      <button class="btn" id="btnFull" title="Pantalla completa">⛶</button>
     </div>
-  </div>
+  </header>
 
-  <div class="layout">
-    <aside class="sidebar">
+  <div id="layout">
+    <aside id="panel">
       <div class="tabs" role="tablist" aria-label="Modo">
         <div class="tab active" id="tabCreate" role="tab" aria-selected="true" tabindex="0">Crear</div>
         <div class="tab" id="tabPlay" role="tab" aria-selected="false" tabindex="0">Jugar</div>
       </div>
 
-      <div id="paneCreate">
-        <div class="panel">
-          <h2>Crear reto (.jpuz)</h2>
-
-          <div>
-            <label for="createImage">Imagen</label>
-            <input id="createImage" type="file" accept="image/*" />
-            <div class="filebox" id="createImageInfo">Ninguna imagen seleccionada.</div>
-          </div>
-
-          <div class="hr"></div>
+      <!-- CREATE -->
+      <section id="paneCreate">
+        <div class="card">
+          <h3>Crear reto</h3>
+          <label>Imagen (local)
+            <input id="cImage" type="file" accept="image/*" />
+          </label>
 
           <div class="grid2">
-            <div>
-              <label for="piecesX">Piezas X (2–30)</label>
-              <input id="piecesX" type="number" min="2" max="30" value="8" />
-            </div>
-            <div>
-              <label for="piecesY">Piezas Y (2–30)</label>
-              <input id="piecesY" type="number" min="2" max="30" value="6" />
-            </div>
+            <label>Piezas X (2–30)
+              <input id="cX" type="number" min="2" max="30" value="8" />
+            </label>
+            <label>Piezas Y (2–30)
+              <input id="cY" type="number" min="2" max="30" value="6" />
+            </label>
           </div>
-
-          <div class="grid2" style="margin-top:10px;">
-            <div>
-              <label for="solveSeconds">Tiempo límite (seg)</label>
-              <input id="solveSeconds" type="number" min="10" max="86400" value="300" />
-            </div>
-            <div>
-              <label for="revealSeconds">Reveal al completar (seg)</label>
-              <input id="revealSeconds" type="number" min="1" max="60" value="5" />
-            </div>
-          </div>
-
-          <div class="row" style="margin-top:10px;">
-            <input id="mystery" type="checkbox" />
-            <label for="mystery" style="margin:0;color:var(--text);">Mystery mode (sin box top)</label>
-          </div>
-
-          <div style="margin-top:10px;">
-            <label for="bgTheme">Tema inicial</label>
-            <select id="bgTheme">
-              <option value="blue">Azul (felt)</option>
-              <option value="chalk">Pizarra</option>
-              <option value="forest">Bosque</option>
-            </select>
-          </div>
-
-          <div class="hr"></div>
 
           <div class="grid2">
-            <div>
-              <label for="maxDim">Compresión: max dimensión (px)</label>
-              <input id="maxDim" type="number" min="256" max="4096" value="1600" />
-            </div>
-            <div>
-              <label for="quality">Calidad JPEG (0.5–1.0)</label>
-              <input id="quality" type="number" min="0.5" max="1.0" step="0.05" value="0.85" />
-            </div>
+            <label>Tiempo límite (s)
+              <input id="cSolve" type="number" min="10" value="300" />
+            </label>
+            <label>Reveal al completar (s)
+              <input id="cReveal" type="number" min="0" value="6" />
+            </label>
           </div>
 
-          <div style="margin-top:10px;">
-            <label for="title">Título (opcional)</label>
-            <input id="title" type="text" placeholder="Ej: Atardecer en la playa" />
+          <div class="grid2">
+            <label>Tema inicial
+              <select id="cTheme">
+                <option value="blue">Azul</option>
+                <option value="slate">Pizarra</option>
+                <option value="forest">Bosque</option>
+              </select>
+            </label>
+            <label style="gap:8px;">
+              Mystery mode
+              <div class="row" style="justify-content:flex-start;">
+                <input id="cMystery" type="checkbox" />
+                <span class="hint">Desactiva box top</span>
+              </div>
+            </label>
           </div>
 
-          <div style="margin-top:10px;">
-            <label for="passwordCreate">Contraseña (mín 8)</label>
-            <input id="passwordCreate" type="password" minlength="8" placeholder="********" />
+          <div class="grid2">
+            <label>Max dimensión (px)
+              <input id="cMaxDim" type="number" min="256" max="4096" value="1600" />
+            </label>
+            <label>Calidad JPEG (0.5–1.0)
+              <input id="cQ" type="number" min="0.5" max="1" step="0.05" value="0.85" />
+            </label>
           </div>
 
-          <div class="hr"></div>
+          <label>Título (opcional)
+            <input id="cTitle" type="text" placeholder="Ej: Atardecer" />
+          </label>
 
-          <button id="btnGenerate" class="btn-accent">🔐 Generar y descargar reto.jpuz</button>
-          <div class="hint" style="margin-top:10px;">
-            Todo ocurre en tu navegador. No se sube nada a servidor.<br/>
-            <span class="small">Privacidad práctica: tras descifrar, cualquiera podría capturar pantalla. No hay DRM.</span>
+          <label>Contraseña (mín. 8)
+            <input id="cPwd" type="password" minlength="8" placeholder="********" />
+          </label>
+
+          <div class="row">
+            <button class="btn btnPrimary" id="btnGenerate" type="button">Generar .jpuz</button>
+            <span class="pill" id="createInfo">—</span>
           </div>
+
+          <p class="hint" style="margin:10px 0 0 0;">
+            Privacidad práctica: tras descifrar, alguien puede capturar pantalla. No es evitable al 100%.
+          </p>
         </div>
-      </div>
+      </section>
 
-      <div id="panePlay" style="display:none;">
-        <div class="panel">
-          <h2>Jugar reto (.jpuz)</h2>
-
-          <div>
-            <label for="jpuzFile">Archivo .jpuz</label>
-            <input id="jpuzFile" type="file" accept=".jpuz,application/json" />
-            <div class="filebox" id="jpuzInfo">Ningún reto cargado.</div>
+      <!-- PLAY -->
+      <section id="panePlay" style="display:none;">
+        <div class="card">
+          <h3>Jugar reto</h3>
+          <label>Archivo .jpuz
+            <input id="pFile" type="file" accept=".jpuz,application/json" />
+          </label>
+          <label>Contraseña
+            <input id="pPwd" type="password" minlength="8" placeholder="********" />
+          </label>
+          <div class="row">
+            <button class="btn btnPrimary" id="btnStart" type="button">Descifrar y jugar</button>
+            <button class="btn" id="btnRestart" type="button" disabled>Reiniciar</button>
           </div>
 
-          <div style="margin-top:10px;">
-            <label for="passwordPlay">Contraseña</label>
-            <input id="passwordPlay" type="password" placeholder="********" />
-          </div>
-
-          <div class="hr"></div>
-
-          <button id="btnStart" class="btn-accent" disabled>▶️ Desbloquear y jugar</button>
-          <button id="btnRestart" class="btn-ghost" disabled title="Reiniciar el mismo reto">🔄 Reiniciar</button>
-
-          <div class="hr"></div>
-          <div class="hint">
-            Atajos: <span style="font-family:var(--mono)">B</span> box top · <span style="font-family:var(--mono)">P</span> pausa ·
-            <span style="font-family:var(--mono)">T</span> tema · <span style="font-family:var(--mono)">R</span> reencuadrar ·
-            <span style="font-family:var(--mono)">Esc</span> cerrar overlays.
-          </div>
+          <p class="hint" style="margin:10px 0 0 0;">
+            Atajos: <b>B</b> box top · <b>P</b> pausa · <b>T</b> tema · <b>R</b> reencuadrar · <b>Esc</b> cerrar overlays
+          </p>
         </div>
 
-        <div class="panel">
-          <h2>Ayuda rápida</h2>
-          <div class="hint">
-            <b>Conexiones bloqueadas:</b> al unir piezas correctamente, ya no se separan.<br/>
-            <b>Tiempo agotado:</b> no se muestra la imagen; puedes reiniciar.<br/>
-            <b>HTTPS:</b> WebCrypto requiere contexto seguro (GitHub Pages vale).<br/>
-            <b>Privacidad práctica:</b> tras descifrar, no se puede impedir 100% una captura.
-          </div>
+        <div class="card">
+          <h3>Diagnóstico rápido (si no cargan librerías)</h3>
+          <p class="hint" style="margin:0;">
+            Si tu red bloquea CDNs, añade en tu repo:
+            <br>• <code>vendor/konva.min.js</code>
+            <br>• <code>vendor/headbreaker.js</code>
+            <br>El loader de esta página los intentará usar automáticamente.
+          </p>
         </div>
-      </div>
-
-      <div class="panel">
-        <h2>Publicación en GitHub Pages</h2>
-        <div class="hint">
-          Sube este <span style="font-family:var(--mono)">index.html</span> al repo y crea un archivo vacío <span style="font-family:var(--mono)">.nojekyll</span>.
-          Activa Pages (branch main / root).
-        </div>
-      </div>
+      </section>
     </aside>
 
-    <main class="board">
-      <div id="canvasHost" tabindex="0" aria-label="Mesa de puzzle"></div>
+    <main id="board" aria-label="Mesa de trabajo">
+      <div id="canvasHost" tabindex="0" aria-label="Puzzle"></div>
       <div id="targetFrame" aria-hidden="true"></div>
 
       <div id="overlay" role="dialog" aria-modal="true" aria-live="assertive">
         <div class="backdrop"></div>
         <div class="modal">
-          <h3 id="overlayTitle">Título</h3>
-          <div class="content" id="overlayContent"></div>
-          <div class="actions" id="overlayActions"></div>
+          <h2 id="ovTitle">—</h2>
+          <div class="content" id="ovBody"></div>
+          <div class="actions" id="ovActions"></div>
         </div>
       </div>
     </main>
   </div>
 
-
   <script>
   (() => {
-    'use strict';
+    "use strict";
 
-    // ---------------------------
-    // Utilidades
-    // ---------------------------
-    const $ = (sel, el=document) => el.querySelector(sel);
-    const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
-    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-    const nextFrame = () => new Promise(r => requestAnimationFrame(() => r()));
+    // -----------------------------
+    // DOM
+    // -----------------------------
+    const $ = (s, el=document) => el.querySelector(s);
 
+    const el = {
+      statusDot: $("#statusDot"),
+      statusText: $("#statusText"),
+      timeText: $("#timeText"),
+
+      tabCreate: $("#tabCreate"),
+      tabPlay: $("#tabPlay"),
+      paneCreate: $("#paneCreate"),
+      panePlay: $("#panePlay"),
+
+      cImage: $("#cImage"),
+      cX: $("#cX"),
+      cY: $("#cY"),
+      cSolve: $("#cSolve"),
+      cReveal: $("#cReveal"),
+      cTheme: $("#cTheme"),
+      cMystery: $("#cMystery"),
+      cMaxDim: $("#cMaxDim"),
+      cQ: $("#cQ"),
+      cTitle: $("#cTitle"),
+      cPwd: $("#cPwd"),
+      btnGenerate: $("#btnGenerate"),
+      createInfo: $("#createInfo"),
+
+      pFile: $("#pFile"),
+      pPwd: $("#pPwd"),
+      btnStart: $("#btnStart"),
+      btnRestart: $("#btnRestart"),
+
+      btnBoxTop: $("#btnBoxTop"),
+      btnPause: $("#btnPause"),
+      btnTheme: $("#btnTheme"),
+      btnReframe: $("#btnReframe"),
+      btnFull: $("#btnFull"),
+
+      board: $("#board"),
+      canvasHost: $("#canvasHost"),
+      targetFrame: $("#targetFrame"),
+
+      overlay: $("#overlay"),
+      ovTitle: $("#ovTitle"),
+      ovBody: $("#ovBody"),
+      ovActions: $("#ovActions"),
+    };
+
+    // -----------------------------
+    // UI helpers
+    // -----------------------------
+    function setStatus(text, kind="neutral"){
+      el.statusText.textContent = text;
+      const c = (kind==="good") ? "rgba(34,197,94,.95)"
+              : (kind==="warn") ? "rgba(245,158,11,.95)"
+              : (kind==="bad")  ? "rgba(239,68,68,.95)"
+              : "rgba(255,255,255,.55)";
+      el.statusDot.style.background = c;
+      el.statusDot.style.boxShadow = (kind==="good") ? "0 0 0 3px rgba(34,197,94,.14)"
+                                : (kind==="warn") ? "0 0 0 3px rgba(245,158,11,.14)"
+                                : (kind==="bad")  ? "0 0 0 3px rgba(239,68,68,.14)"
+                                : "0 0 0 3px rgba(255,255,255,.06)";
+    }
+
+    function showOverlay({title, html, actions=[], lock=false}){
+      el.ovTitle.textContent = title || "—";
+      el.ovBody.innerHTML = html || "";
+      el.ovActions.innerHTML = "";
+      el.overlay.classList.toggle("lock", !!lock);
+      el.overlay.classList.add("active");
+
+      for (const a of actions){
+        const b = document.createElement("button");
+        b.className = "btn " + (a.primary ? "btnPrimary" : "");
+        b.textContent = a.label;
+        b.addEventListener("click", () => a.onClick && a.onClick());
+        el.ovActions.appendChild(b);
+      }
+    }
+    function hideOverlay(force=false){
+      if (!force && el.overlay.classList.contains("lock")) return;
+      el.overlay.classList.remove("active","lock");
+      el.ovTitle.textContent = "—";
+      el.ovBody.innerHTML = "";
+      el.ovActions.innerHTML = "";
+    }
+    el.overlay.addEventListener("click", (e) => {
+      if (el.overlay.classList.contains("lock")) return;
+      if (e.target === el.overlay || e.target.classList.contains("backdrop")) hideOverlay(false);
+    });
+
+    // -----------------------------
+    // Tabs
+    // -----------------------------
+    function setTab(which){
+      const create = which === "create";
+      el.tabCreate.classList.toggle("active", create);
+      el.tabPlay.classList.toggle("active", !create);
+      el.paneCreate.style.display = create ? "" : "none";
+      el.panePlay.style.display = create ? "none" : "";
+      el.tabCreate.setAttribute("aria-selected", String(create));
+      el.tabPlay.setAttribute("aria-selected", String(!create));
+    }
+    el.tabCreate.addEventListener("click", () => setTab("create"));
+    el.tabPlay.addEventListener("click", () => setTab("play"));
+
+    // -----------------------------
+    // Theme
+    // -----------------------------
+    const THEMES = ["blue","slate","forest"];
+    function setTheme(t){
+      document.body.setAttribute("data-theme", THEMES.includes(t) ? t : "blue");
+    }
+    function cycleTheme(){
+      const cur = document.body.getAttribute("data-theme") || "blue";
+      const idx = THEMES.indexOf(cur);
+      setTheme(THEMES[(idx+1) % THEMES.length]);
+    }
+    el.btnTheme.addEventListener("click", cycleTheme);
+
+    // -----------------------------
+    // Fullscreen
+    // -----------------------------
+    el.btnFull.addEventListener("click", async () => {
+      try{
+        if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+        else await document.exitFullscreen();
+      }catch{}
+    });
+
+    // -----------------------------
+    // Base64 helpers
+    // -----------------------------
+    function bytesToB64(bytes){
+      let bin = "";
+      const chunk = 0x8000;
+      for (let i=0; i<bytes.length; i+=chunk){
+        bin += String.fromCharCode(...bytes.subarray(i, i+chunk));
+      }
+      return btoa(bin);
+    }
+    function b64ToBytes(b64){
+      const bin = atob(b64);
+      const out = new Uint8Array(bin.length);
+      for (let i=0; i<bin.length; i++) out[i] = bin.charCodeAt(i);
+      return out;
+    }
+
+    // -----------------------------
+    // Crypto (PBKDF2 + AES-GCM)
+    // -----------------------------
     const enc = new TextEncoder();
     const dec = new TextDecoder();
+    const KDF_ITER = 200000;
 
-    function fmtTime(ms){
-      ms = Math.max(0, ms);
-      const total = Math.ceil(ms / 1000);
-      const m = Math.floor(total / 60);
-      const s = total % 60;
-      return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+    async function deriveKey(password, salt, iter){
+      const keyMat = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]);
+      return crypto.subtle.deriveKey(
+        {name:"PBKDF2", hash:"SHA-256", salt, iterations: iter},
+        keyMat,
+        {name:"AES-GCM", length:256},
+        false,
+        ["encrypt","decrypt"]
+      );
     }
 
-    function u8ToB64(u8){
-      const chunk = 0x8000;
-      let out = '';
-      for (let i=0;i<u8.length;i+=chunk){
-        out += String.fromCharCode(...u8.subarray(i, i+chunk));
+    async function encryptToJpuz(password, payloadObj){
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const key = await deriveKey(password, salt, KDF_ITER);
+
+      const pt = enc.encode(JSON.stringify(payloadObj));
+      const ctBuf = await crypto.subtle.encrypt({name:"AES-GCM", iv}, key, pt);
+
+      return {
+        v: 1,
+        kdf: "PBKDF2",
+        iter: KDF_ITER,
+        salt: bytesToB64(salt),
+        alg: "AES-GCM",
+        iv: bytesToB64(iv),
+        ct: bytesToB64(new Uint8Array(ctBuf))
+      };
+    }
+
+    async function decryptFromJpuz(password, jpuzObj){
+      const req = ["v","kdf","iter","salt","alg","iv","ct"];
+      for (const k of req) if (!(k in jpuzObj)) throw new Error("Falta campo en .jpuz: " + k);
+      if (jpuzObj.v !== 1) throw new Error("Versión .jpuz no soportada.");
+      if (jpuzObj.kdf !== "PBKDF2") throw new Error("KDF no soportada.");
+      if (jpuzObj.alg !== "AES-GCM") throw new Error("Algoritmo no soportado.");
+
+      const salt = b64ToBytes(jpuzObj.salt);
+      const iv = b64ToBytes(jpuzObj.iv);
+      const ct = b64ToBytes(jpuzObj.ct);
+      const iter = Number(jpuzObj.iter);
+
+      const key = await deriveKey(password, salt, iter);
+
+      let ptBuf;
+      try{
+        ptBuf = await crypto.subtle.decrypt({name:"AES-GCM", iv}, key, ct);
+      }catch{
+        throw new Error("Descifrado fallido: contraseña incorrecta o archivo corrupto.");
       }
-      return btoa(out);
+      const json = dec.decode(ptBuf);
+      return JSON.parse(json);
     }
 
-    function b64ToU8(b64){
-      const bin = atob(b64);
-      const u8 = new Uint8Array(bin.length);
-      for (let i=0;i<bin.length;i++) u8[i] = bin.charCodeAt(i);
-      return u8;
+    // -----------------------------
+    // Image processing (resize + crop ratio puzzle + JPEG)
+    // -----------------------------
+    function clamp(n,a,b){ return Math.min(b, Math.max(a, n)); }
+
+    async function compressImageToJpegBase64(file, {maxDim, quality, targetAspect}){
+      const bmp = await createImageBitmap(file);
+
+      // resize
+      const inW = bmp.width, inH = bmp.height;
+      const scale = Math.min(1, maxDim / Math.max(inW, inH));
+      const rW = Math.max(1, Math.round(inW * scale));
+      const rH = Math.max(1, Math.round(inH * scale));
+
+      const tmp = document.createElement("canvas");
+      tmp.width = rW; tmp.height = rH;
+      const tctx = tmp.getContext("2d", {alpha:false, desynchronized:true});
+      tctx.imageSmoothingEnabled = true;
+      tctx.imageSmoothingQuality = "high";
+      tctx.drawImage(bmp, 0, 0, rW, rH);
+
+      // center crop to targetAspect (so puzzle fills nicely)
+      let sx=0, sy=0, sw=rW, sh=rH;
+      if (targetAspect && isFinite(targetAspect) && targetAspect > 0){
+        const cur = rW / rH;
+        if (cur > targetAspect){
+          sh = rH;
+          sw = Math.round(rH * targetAspect);
+          sx = Math.round((rW - sw)/2);
+        }else if (cur < targetAspect){
+          sw = rW;
+          sh = Math.round(rW / targetAspect);
+          sy = Math.round((rH - sh)/2);
+        }
+      }
+
+      const out = document.createElement("canvas");
+      out.width = sw; out.height = sh;
+      const octx = out.getContext("2d", {alpha:false, desynchronized:true});
+      octx.imageSmoothingEnabled = true;
+      octx.imageSmoothingQuality = "high";
+      octx.drawImage(tmp, sx, sy, sw, sh, 0, 0, sw, sh);
+
+      const blob = await new Promise((resolve, reject) => {
+        out.toBlob(b => b ? resolve(b) : reject(new Error("Fallo codificando JPEG.")), "image/jpeg", quality);
+      });
+
+      const b64 = await new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => {
+          const s = String(r.result || "");
+          const i = s.indexOf(",");
+          resolve(i >= 0 ? s.slice(i+1) : s);
+        };
+        r.onerror = () => reject(new Error("No se pudo leer JPEG."));
+        r.readAsDataURL(blob);
+      });
+
+      return { mime:"image/jpeg", imgB64:b64, w: sw, h: sh, bytes: blob.size };
     }
 
     function downloadText(filename, text){
-      const blob = new Blob([text], {type:'application/json'});
+      const blob = new Blob([text], {type:"application/json"});
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
     }
 
-    function isTypingTarget(t){
-      if (!t) return false;
-      const tag = (t.tagName || '').toLowerCase();
-      return tag === 'input' || tag === 'textarea' || tag === 'select' || t.isContentEditable;
-    }
-
-    // ---------------------------
-    // Overlay UI
-    // ---------------------------
-    const overlay = $('#overlay');
-    const overlayTitle = $('#overlayTitle');
-    const overlayContent = $('#overlayContent');
-    const overlayActions = $('#overlayActions');
-
-    function hideOverlay(){
-      overlay.classList.remove('active','lock');
-      overlayTitle.textContent = '';
-      overlayContent.innerHTML = '';
-      overlayActions.innerHTML = '';
-    }
-
-    function showOverlay({title, html, actions=[], lock=false}){
-      overlayTitle.textContent = title || '';
-      overlayContent.innerHTML = html || '';
-      overlayActions.innerHTML = '';
-
-      actions.forEach(a => {
-        const btn = document.createElement('button');
-        btn.textContent = a.label;
-        btn.className = a.className || 'btn-ghost';
-        btn.addEventListener('click', () => a.onClick && a.onClick());
-        overlayActions.appendChild(btn);
+    // -----------------------------
+    // Robust loader for Konva + Headbreaker
+    // -----------------------------
+    function loadScript(src){
+      return new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = src;
+        s.async = false;
+        s.onload = () => resolve(src);
+        s.onerror = () => reject(new Error("No se pudo cargar: " + src));
+        document.head.appendChild(s);
       });
-
-      overlay.classList.toggle('lock', !!lock);
-      overlay.classList.add('active');
     }
 
-    overlay.addEventListener('click', (e) => {
-      // click fuera del modal para cerrar solo si no es lock
-      if (overlay.classList.contains('lock')) return;
-      if (e.target === overlay || e.target.classList.contains('backdrop')) hideOverlay();
-    });
-
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && overlay.classList.contains('active') && !overlay.classList.contains('lock')) {
-        hideOverlay();
+    async function loadFirstWorking(name, urls, testFn){
+      let lastErr = null;
+      for (const u of urls){
+        try{
+          await loadScript(u);
+          if (testFn()) return u;
+          lastErr = new Error(name + " cargó pero no expuso el global esperado: " + u);
+        }catch(e){
+          lastErr = e;
+        }
       }
-    });
+      throw lastErr || new Error("No se pudo cargar " + name);
+    }
 
-    // ---------------------------
-    // Estado app
-    // ---------------------------
-    const state = {
-      theme: 'blue',
-      jpuzObj: null,
+    async function loadLibs(){
+      setStatus("Cargando librerías (Konva/Headbreaker)…", "warn");
+
+      const konvaURL = await loadFirstWorking(
+        "Konva",
+        [
+          "./vendor/konva.min.js",
+          "https://cdnjs.cloudflare.com/ajax/libs/konva/8.4.3/konva.min.js",
+          "https://cdn.jsdelivr.net/npm/konva@8.4.3/konva.min.js"
+        ],
+        () => !!window.Konva
+      );
+
+      const hbURL = await loadFirstWorking(
+        "Headbreaker",
+        [
+          "./vendor/headbreaker.js",
+          "https://flbulgarelli.github.io/headbreaker/js/headbreaker.js"
+        ],
+        () => !!window.headbreaker && !!window.headbreaker.Canvas
+      );
+
+      return { konvaURL, hbURL };
+    }
+
+    // -----------------------------
+    // Puzzle runtime
+    // -----------------------------
+    const game = {
+      canvas: null,
       payload: null,
       imgDataUrl: null,
-
-      canvas: null,
-      running: false,
-      paused: false,
-      solved: false,
-      timeEndAt: 0,
-      remainingMs: 0,
+      state: "idle", // idle|playing|paused|timeout|solved|finished
+      endAt: 0,
+      pausedRemaining: 0,
       tickId: null,
+      mystery: false
     };
 
-    const statusText = $('#statusText');
-    const timerText = $('#timerText');
-
-    function setStatus(text){
-      statusText.textContent = text;
+    function setTimerSeconds(sec){
+      const s = Math.max(0, Math.ceil(sec));
+      const mm = String(Math.floor(s/60)).padStart(2,"0");
+      const ss = String(s%60).padStart(2,"0");
+      el.timeText.textContent = `${mm}:${ss}`;
     }
-    function setTimer(ms){
-      timerText.textContent = fmtTime(ms);
+    function stopTimer(){
+      if (game.tickId) clearInterval(game.tickId);
+      game.tickId = null;
     }
-
-    function setTheme(theme){
-      theme = theme || 'blue';
-      document.body.setAttribute('data-theme', theme);
-      state.theme = theme;
-      $('#bgTheme').value = theme;
+    function remainingSeconds(){
+      if (game.state === "paused") return Math.ceil(game.pausedRemaining/1000);
+      return Math.ceil((game.endAt - performance.now())/1000);
     }
-    function cycleTheme(){
-      const order = ['blue','chalk','forest'];
-      const idx = order.indexOf(state.theme);
-      setTheme(order[(idx+1) % order.length]);
-    }
-
-    // ---------------------------
-    // Crypto (PBKDF2 + AES-GCM)
-    // ---------------------------
-    async function deriveKeyPBKDF2(password, saltU8, iterations){
-      const keyMaterial = await crypto.subtle.importKey(
-        'raw',
-        enc.encode(password),
-        {name:'PBKDF2'},
-        false,
-        ['deriveKey']
-      );
-
-      return crypto.subtle.deriveKey(
-        {name:'PBKDF2', hash:'SHA-256', salt: saltU8, iterations},
-        keyMaterial,
-        {name:'AES-GCM', length: 256},
-        false,
-        ['encrypt','decrypt']
-      );
+    function startTimer(seconds){
+      stopTimer();
+      game.endAt = performance.now() + seconds*1000;
+      setTimerSeconds(seconds);
+      game.tickId = setInterval(() => {
+        if (game.state !== "playing") return;
+        const rem = remainingSeconds();
+        setTimerSeconds(rem);
+        if (rem <= 0) onTimeout();
+      }, 200);
     }
 
-    async function encryptPayload(payloadObj, password, iterations=150000){
-      const salt = crypto.getRandomValues(new Uint8Array(16));
-      const iv = crypto.getRandomValues(new Uint8Array(12));
-
-      const key = await deriveKeyPBKDF2(password, salt, iterations);
-      const pt = enc.encode(JSON.stringify(payloadObj));
-      const ctBuf = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, pt);
-
-      return {
-        v: 1,
-        kdf: 'PBKDF2',
-        iter: iterations,
-        salt: u8ToB64(salt),
-        alg: 'AES-GCM',
-        iv: u8ToB64(iv),
-        ct: u8ToB64(new Uint8Array(ctBuf))
-      };
+    function enableControls(active){
+      el.btnPause.disabled = !active;
+      el.btnReframe.disabled = !active;
+      el.btnBoxTop.disabled = !active || game.mystery;
     }
 
-    async function decryptJpuz(jpuzObj, password){
-      if (!jpuzObj || typeof jpuzObj !== 'object') throw new Error('Archivo .jpuz inválido (no es JSON).');
-      if (jpuzObj.kdf !== 'PBKDF2') throw new Error('KDF no soportada.');
-      if (jpuzObj.alg !== 'AES-GCM') throw new Error('Algoritmo no soportado.');
-      if (!jpuzObj.salt || !jpuzObj.iv || !jpuzObj.ct) throw new Error('Faltan campos en el .jpuz.');
+    function clearBoard(){
+      stopTimer();
+      game.state = "idle";
+      game.payload = null;
+      game.imgDataUrl = null;
+      game.mystery = false;
+      setTimerSeconds(0);
 
-      const iterations = Number(jpuzObj.iter) || 150000;
-      const salt = b64ToU8(jpuzObj.salt);
-      const iv = b64ToU8(jpuzObj.iv);
-      const ct = b64ToU8(jpuzObj.ct);
+      el.btnRestart.disabled = true;
 
-      const key = await deriveKeyPBKDF2(password, salt, iterations);
-
-      let ptBuf;
       try{
-        ptBuf = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, ct);
-      }catch{
-        throw new Error('Contraseña incorrecta o archivo corrupto (falló AES-GCM).');
-      }
+        if (game.canvas) game.canvas.clear();
+      }catch{}
+      game.canvas = null;
 
-      const json = dec.decode(new Uint8Array(ptBuf));
-      let payload;
-      try{
-        payload = JSON.parse(json);
-      }catch{
-        throw new Error('Payload descifrado no es JSON válido.');
-      }
-      return payload;
+      // wipe host
+      el.canvasHost.replaceChildren();
+
+      enableControls(false);
+      setStatus("Listo. Crea un reto o carga un .jpuz.", "neutral");
     }
 
-    // ---------------------------
-    // Procesado imagen (resize + crop a ratio piezasX/piezasY + JPEG)
-    // ---------------------------
-    function loadImageFromURL(url){
+    function boardSize(){
+      const r = el.board.getBoundingClientRect();
+      return { w: Math.floor(r.width), h: Math.floor(r.height) };
+    }
+
+    function setTargetFrame(piecesX, piecesY, pieceSize){
+      el.targetFrame.style.width = Math.round(piecesX * pieceSize) + "px";
+      el.targetFrame.style.height = Math.round(piecesY * pieceSize) + "px";
+    }
+
+    function gridMetadata(px, py){
+      const out = [];
+      for (let row=0; row<py; row++){
+        for (let col=0; col<px; col++){
+          out.push({ row, col });
+        }
+      }
+      return out;
+    }
+
+    function ensureSecureContext(){
+      if (!window.isSecureContext || !window.crypto?.subtle){
+        showOverlay({
+          title: "HTTPS requerido",
+          html: `
+            <p>Esta app usa <b>WebCrypto</b> (PBKDF2 + AES-GCM). Eso requiere <b>HTTPS</b> (GitHub Pages vale).</p>
+            <p class="hint">Si abriste el archivo con <code>file://</code>, publícalo en GitHub Pages o usa un servidor local HTTPS.</p>
+          `,
+          actions: [{label:"Entendido", primary:true, onClick: () => hideOverlay(true)}],
+          lock: false
+        });
+        throw new Error("Contexto no seguro: se requiere HTTPS para WebCrypto.");
+      }
+    }
+
+    async function loadImage(url){
       return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => resolve(img);
-        img.onerror = () => reject(new Error('No se pudo cargar la imagen.'));
+        img.onerror = () => reject(new Error("No se pudo cargar la imagen (data URL)."));
         img.src = url;
       });
     }
 
-    async function compressAndCropImage(file, {maxDim, quality, targetAspect}){
-      const url = URL.createObjectURL(file);
-      try{
-        const img = await loadImageFromURL(url);
+    async function buildPuzzle(payload){
+      const hb = window.headbreaker;
+      if (!hb?.Canvas) throw new Error("Headbreaker no está disponible.");
 
-        const scale = Math.min(1, maxDim / Math.max(img.naturalWidth, img.naturalHeight));
-        const w = Math.max(1, Math.round(img.naturalWidth * scale));
-        const h = Math.max(1, Math.round(img.naturalHeight * scale));
+      // clean previous
+      try{ if (game.canvas) game.canvas.clear(); }catch{}
+      game.canvas = null;
+      el.canvasHost.replaceChildren();
 
-        const tmp = document.createElement('canvas');
-        tmp.width = w; tmp.height = h;
-        const tctx = tmp.getContext('2d', {alpha:false});
-        tctx.imageSmoothingEnabled = true;
-        tctx.imageSmoothingQuality = 'high';
-        tctx.drawImage(img, 0, 0, w, h);
-
-        // center crop a targetAspect
-        let sx=0, sy=0, sw=w, sh=h;
-        if (targetAspect && isFinite(targetAspect) && targetAspect > 0){
-          const cur = w / h;
-          if (cur > targetAspect){
-            // demasiado ancho
-            sh = h;
-            sw = Math.round(h * targetAspect);
-            sx = Math.round((w - sw) / 2);
-          } else if (cur < targetAspect){
-            sw = w;
-            sh = Math.round(w / targetAspect);
-            sy = Math.round((h - sh) / 2);
-          }
-        }
-
-        const out = document.createElement('canvas');
-        out.width = sw; out.height = sh;
-        const octx = out.getContext('2d', {alpha:false});
-        octx.imageSmoothingEnabled = true;
-        octx.imageSmoothingQuality = 'high';
-        octx.drawImage(tmp, sx, sy, sw, sh, 0, 0, sw, sh);
-
-        const blob = await new Promise((resolve, reject) => {
-          out.toBlob(b => b ? resolve(b) : reject(new Error('No se pudo codificar JPEG.')), 'image/jpeg', quality);
-        });
-
-        const buf = await blob.arrayBuffer();
-        return {
-          mime: 'image/jpeg',
-          bytes: new Uint8Array(buf),
-          width: sw,
-          height: sh
-        };
-      } finally {
-        URL.revokeObjectURL(url);
-      }
-    }
-
-    // ---------------------------
-    // Headbreaker: puzzle “estricto” (solo vecinos correctos)
-    // ---------------------------
-    function makeGridMetadata(px, py){
-      const arr = [];
-      for (let row=0; row<py; row++){
-        for (let col=0; col<px; col++){
-          arr.push({ row, col });
-        }
-      }
-      return arr;
-    }
-
-    function updateTargetFrame(piecesX, piecesY, pieceSize){
-      const frame = $('#targetFrame');
-      frame.style.width = `${Math.round(pieceSize * piecesX)}px`;
-      frame.style.height = `${Math.round(pieceSize * piecesY)}px`;
-    }
-
-    function clearPuzzle(){
-      state.running = false;
-      state.paused = false;
-      state.solved = false;
-
-      stopTimer();
-
-      if (state.canvas){
-        try{ state.canvas.clear(); }catch{}
-        state.canvas = null;
-      }
-      $('#canvasHost').replaceChildren();
-      $('#btnBoxTop').disabled = true;
-      $('#btnPause').disabled = true;
-      $('#btnReframe').disabled = true;
-      $('#btnRestart').disabled = !state.payload;
-    }
-
-    function boardSize(){
-      const board = document.querySelector('.board');
-      const r = board.getBoundingClientRect();
-      return { w: Math.floor(r.width), h: Math.floor(r.height) };
-    }
-
-    async function startPuzzleFromPayload(payload){
-      clearPuzzle();
-
-      // aplicar tema inicial del reto
-      if (payload.bgTheme) setTheme(payload.bgTheme);
-
-      // validar payload mínimo
-      const piecesX = Number(payload.piecesX);
-      const piecesY = Number(payload.piecesY);
-      const solveSeconds = Number(payload.solveSeconds);
-      const revealSeconds = Number(payload.revealSeconds);
+      // validate payload
+      const piecesX = clamp(Number(payload.piecesX), 2, 30);
+      const piecesY = clamp(Number(payload.piecesY), 2, 30);
+      const solveSeconds = Math.max(1, Math.floor(Number(payload.solveSeconds)));
+      const revealSeconds = Math.max(0, Math.floor(Number(payload.revealSeconds)));
       const mystery = !!payload.mystery;
+      const bgTheme = String(payload.bgTheme || "blue");
 
-      if (!(piecesX>=2 && piecesX<=30 && piecesY>=2 && piecesY<=30)) throw new Error('Piezas X/Y inválidas.');
-      if (!(solveSeconds>0)) throw new Error('solveSeconds inválido.');
-      if (!(revealSeconds>0)) throw new Error('revealSeconds inválido.');
-      if (!payload.mime || !payload.img) throw new Error('Imagen inválida en payload.');
+      setTheme(bgTheme);
 
-      state.payload = payload;
-      state.imgDataUrl = `data:${payload.mime};base64,${payload.img}`;
+      game.payload = { ...payload, piecesX, piecesY, solveSeconds, revealSeconds, mystery, bgTheme };
+      game.imgDataUrl = `data:${payload.mime};base64,${payload.img}`;
+      game.mystery = mystery;
 
-      // cargar imagen
-      const img = await loadImageFromURL(state.imgDataUrl);
+      // load image
+      const img = await loadImage(game.imgDataUrl);
 
-      const {w, h} = boardSize();
+      const { w, h } = boardSize();
 
-      // frame ocupa ~55-60% del tablero para dejar “mesa” alrededor
-      const maxFrameW = Math.max(240, w * 0.58);
-      const maxFrameH = Math.max(220, h * 0.62);
-      const pieceSize = clamp(Math.floor(Math.min(maxFrameW / piecesX, maxFrameH / piecesY)), 22, 140);
+      // Make final puzzle smaller than workbench (mesa amplia)
+      const frameScale = 0.58;
+      const pieceSize = clamp(
+        Math.floor(Math.min((w*frameScale)/piecesX, (h*frameScale)/piecesY)),
+        22,
+        140
+      );
 
-      updateTargetFrame(piecesX, piecesY, pieceSize);
+      const proximity = clamp(Math.round(pieceSize * 0.16), 10, 30);
+      const borderFill = clamp(Math.round(pieceSize * 0.11), 6, 18);
+      const strokeWidth = clamp(pieceSize * 0.028, 1.0, 2.6);
 
-      const proximity = clamp(Math.round(pieceSize * 0.16), 10, 28);
-      const borderFill = clamp(Math.round(pieceSize * 0.10), 3, 16);
-      const strokeWidth = clamp(pieceSize * 0.028, 0.8, 2.4);
+      setTargetFrame(piecesX, piecesY, pieceSize);
 
-      // crear canvas Headbreaker
-      const canvas = new headbreaker.Canvas('canvasHost', {
+      const opts = {
         width: w,
         height: h,
-        pieceSize: pieceSize,
+        pieceSize,
         proximity,
         borderFill,
         strokeWidth,
-        strokeColor: 'rgba(0,0,0,.32)',
+        strokeColor: "rgba(0,0,0,.32)",
         lineSoftness: 0.22,
+        outline: new hb.outline.Rounded(),
         image: img,
         fixed: true,
-        preventOffstageDrag: true,
+        preventOffstageDrag: false,
         maxPiecesCount: {x: piecesX, y: piecesY},
-        outline: new headbreaker.outline.Rounded()
-      });
+      };
 
-      // Alinear imagen al puzzle (como el ratio ya se croppea en creación, encaja)
-      canvas.adjustImagesToPuzzleWidth();
+      // Prefer explicit Konva painter if available
+      if (hb.painters?.Konva) {
+        opts.painter = new hb.painters.Konva();
+      }
 
-      // Piezas con inserts aleatorios más “orgánicos”
+      const canvas = new hb.Canvas("canvasHost", opts);
+
+      // Scale image to puzzle
+      // (como en la doc: adjustImagesToPuzzleWidth/Height)
+      if ((img.naturalWidth / img.naturalHeight) >= (piecesX / piecesY)) canvas.adjustImagesToPuzzleHeight();
+      else canvas.adjustImagesToPuzzleWidth();
+
+      // Generate puzzle with nicer cuts
       canvas.autogenerate({
         horizontalPiecesCount: piecesX,
         verticalPiecesCount: piecesY,
-        insertsGenerator: headbreaker.generators.random,
-        metadata: makeGridMetadata(piecesX, piecesY)
+        insertsGenerator: hb.generators.random,
+        metadata: gridMetadata(piecesX, piecesY)
       });
 
-      // 🔒 Requisito clave: SOLO permitir conexión con vecinos correctos (row/col)
-      // Horizontal: misma fila, col dif = 1
-      canvas.puzzle.attachHorizontalConnectionRequirement((one, other) => {
-        return one.metadata.row === other.metadata.row && Math.abs(one.metadata.col - other.metadata.col) === 1;
+      // IMPORTANT: strict correct connections only (no incorrect snaps)
+      canvas.puzzle.attachHorizontalConnectionRequirement((a, b) => {
+        return a.metadata.row === b.metadata.row && Math.abs(a.metadata.col - b.metadata.col) === 1;
       });
-      // Vertical: misma col, row dif = 1
-      canvas.puzzle.attachVerticalConnectionRequirement((one, other) => {
-        return one.metadata.col === other.metadata.col && Math.abs(one.metadata.row - other.metadata.row) === 1;
+      canvas.puzzle.attachVerticalConnectionRequirement((a, b) => {
+        return a.metadata.col === b.metadata.col && Math.abs(a.metadata.row - b.metadata.row) === 1;
       });
 
-      // Mezclar en “mesa” amplia
-      canvas.shuffleGrid(0.95);
-
-      // Bloquear conexiones: una vez unidas, no se separan al arrastrar
+      // lock connected groups
       canvas.puzzle.forceConnectionWhileDragging();
 
-      // Validación de “solved”: conectadas + posiciones relativas correctas
+      // solved callback
       canvas.attachSolvedValidator();
-
       canvas.onValid(() => {
-        if (!state.running || state.solved) return;
-        onSolved(revealSeconds);
+        if (game.state === "playing") onSolved();
       });
 
+      // shuffle into workbench
+      canvas.shuffleGrid(0.95);
       canvas.draw();
 
-      state.canvas = canvas;
-      state.running = true;
-      state.paused = false;
-      state.solved = false;
+      game.canvas = canvas;
 
-      // UI
-      $('#btnPause').disabled = false;
-      $('#btnReframe').disabled = false;
-      $('#btnRestart').disabled = false;
-      $('#btnBoxTop').disabled = mystery; // si mystery => deshabilitar
-      setStatus('En juego');
-      startTimer(solveSeconds * 1000);
+      // start playing
+      game.state = "playing";
+      startTimer(solveSeconds);
+      enableControls(true);
+      el.btnRestart.disabled = false;
+
+      setStatus("En juego…", "good");
+      el.btnBoxTop.disabled = mystery; // no box top in mystery
     }
 
-    // ---------------------------
-    // Timer / estados
-    // ---------------------------
-    function stopTimer(){
-      if (state.tickId){
-        clearInterval(state.tickId);
-        state.tickId = null;
+    function onTimeout(){
+      if (game.state !== "playing") return;
+      game.state = "timeout";
+      stopTimer();
+      setTimerSeconds(0);
+      enableControls(false);
+      setStatus("Tiempo agotado.", "bad");
+
+      showOverlay({
+        title: "Tiempo agotado",
+        html: `
+          <p>Se agotó el tiempo. Por requisito, <b>no se muestra la imagen</b>.</p>
+          <p class="hint">Puedes reiniciar para intentarlo de nuevo.</p>
+        `,
+        actions: [
+          {label:"Reiniciar", primary:true, onClick: () => { hideOverlay(true); restartSame(); }},
+        ],
+        lock: true
+      });
+    }
+
+    function onSolved(){
+      game.state = "solved";
+      stopTimer();
+      setStatus("Resuelto. Revelando…", "good");
+
+      const reveal = Math.max(0, Number(game.payload?.revealSeconds || 0));
+      const title = String(game.payload?.title || "Reto completado");
+
+      showOverlay({
+        title,
+        html: `
+          <p>¡Bien! Se muestra la imagen completa durante <b>${reveal}</b> s.</p>
+          <img alt="Reveal" src="${game.imgDataUrl}">
+          <p class="hint">Privacidad práctica: tras descifrar, se puede capturar pantalla.</p>
+        `,
+        actions: [],
+        lock: true
+      });
+
+      setTimeout(() => {
+        game.state = "finished";
+        setStatus("Fin.", "warn");
+        showOverlay({
+          title: "Fin",
+          html: `<p>Terminó el reveal.</p>`,
+          actions: [
+            {label:"Jugar de nuevo", primary:true, onClick: () => { hideOverlay(true); restartSame(); }},
+            {label:"Cerrar", primary:false, onClick: () => { hideOverlay(true); }},
+          ],
+          lock: true
+        });
+      }, reveal * 1000);
+    }
+
+    function togglePause(){
+      if (game.state === "playing"){
+        game.state = "paused";
+        game.pausedRemaining = Math.max(0, game.endAt - performance.now());
+        setStatus("Pausado.", "warn");
+        showOverlay({
+          title: "Pausado",
+          html: `<p>Temporizador detenido.</p><p class="hint">Pulsa P para reanudar.</p>`,
+          actions: [{label:"Reanudar", primary:true, onClick: () => { hideOverlay(true); togglePause(); }}],
+          lock: false
+        });
+      } else if (game.state === "paused"){
+        hideOverlay(true);
+        game.state = "playing";
+        game.endAt = performance.now() + game.pausedRemaining;
+        game.pausedRemaining = 0;
+        setStatus("En juego…", "good");
       }
-      state.timeEndAt = 0;
     }
 
-    function startTimer(ms){
-      stopTimer();
-      state.remainingMs = ms;
-      state.timeEndAt = Date.now() + ms;
-      setTimer(ms);
-
-      state.tickId = setInterval(() => {
-        if (!state.running || state.paused || state.solved) return;
-
-        const remain = state.timeEndAt - Date.now();
-        state.remainingMs = Math.max(0, remain);
-        setTimer(state.remainingMs);
-
-        if (state.remainingMs <= 0){
-          onTimeUp();
-        }
-      }, 200);
-    }
-
-    function pauseGame(){
-      if (!state.running || state.paused || state.solved) return;
-      state.paused = true;
-      // congelar tiempo
-      state.remainingMs = Math.max(0, state.timeEndAt - Date.now());
-      setTimer(state.remainingMs);
-      setStatus('Pausado');
-
-      showOverlay({
-        title:'Pausado',
-        html:`<div class="hint">El tiempo está detenido. Pulsa <b>P</b> o “Reanudar”.</div>`,
-        actions:[
-          {label:'Reanudar', className:'btn-accent', onClick: () => { hideOverlay(); resumeGame(); }},
-        ],
-        lock:false
-      });
-    }
-
-    function resumeGame(){
-      if (!state.running || !state.paused || state.solved) return;
-      state.paused = false;
-      state.timeEndAt = Date.now() + state.remainingMs;
-      setStatus('En juego');
-    }
-
-    function onTimeUp(){
-      if (!state.running || state.solved) return;
-      state.running = false;
-      stopTimer();
-      setTimer(0);
-      setStatus('Tiempo agotado');
-
-      showOverlay({
-        title:'⏳ Tiempo agotado',
-        html:`<div class="hint">No se muestra la imagen. Puedes reiniciar el reto.</div>`,
-        actions:[
-          {label:'Reiniciar', className:'btn-accent', onClick: () => { hideOverlay(); restartGame(); }},
-          {label:'Cerrar', className:'btn-ghost', onClick: () => { /* lock overlay: no-op */ }},
-        ],
-        lock:true
-      });
-    }
-
-    async function onSolved(revealSeconds){
-      state.solved = true;
-      state.running = false;
-      stopTimer();
-      setStatus('Resuelto');
-      setTimer(state.remainingMs);
-
-      // reveal overlay (con imagen completa) durante revealSeconds
-      let left = Math.max(1, Math.round(revealSeconds));
-      showOverlay({
-        title:'✅ ¡Puzzle resuelto!',
-        html:`<div class="hint">Revelando imagen completa durante <b id="revLeft">${left}</b> s…</div>
-              <div style="margin-top:10px;"><img class="preview" alt="Imagen revelada" src="${state.imgDataUrl}"></div>`,
-        actions:[],
-        lock:true
-      });
-
-      const revEl = () => $('#revLeft');
-      for (let i=0; i<left; i++){
-        await sleep(1000);
-        const el = revEl();
-        if (!el) break;
-        el.textContent = String(Math.max(0, left - i - 1));
-      }
-
-      // fin: ocultar imagen, mostrar “Fin”
-      showOverlay({
-        title:'🏁 Fin',
-        html:`<div class="hint">El reveal terminó. Para jugar otra vez, reinicia.</div>`,
-        actions:[
-          {label:'Reiniciar', className:'btn-accent', onClick: () => { hideOverlay(); restartGame(); }},
-        ],
-        lock:true
-      });
-    }
-
-    function restartGame(){
-      if (!state.payload) return;
-      startPuzzleFromPayload(state.payload).catch(err => showError(err));
-    }
-
-    // ---------------------------
-    // Errores
-    // ---------------------------
-    function showError(err){
-      const msg = (err && err.message) ? err.message : String(err || 'Error desconocido');
-      console.error(err);
-      showOverlay({
-        title:'Error',
-        html:`<div class="hint">${msg}</div>`,
-        actions:[{label:'Cerrar', className:'btn-accent', onClick: () => hideOverlay()}],
-        lock:false
-      });
-      setStatus('Error');
-    }
-
-    // ---------------------------
-    // UI: tabs
-    // ---------------------------
-    function setTab(which){
-      const create = which === 'create';
-      $('#tabCreate').classList.toggle('active', create);
-      $('#tabPlay').classList.toggle('active', !create);
-      $('#tabCreate').setAttribute('aria-selected', String(create));
-      $('#tabPlay').setAttribute('aria-selected', String(!create));
-      $('#paneCreate').style.display = create ? '' : 'none';
-      $('#panePlay').style.display = create ? 'none' : '';
-    }
-
-    $('#tabCreate').addEventListener('click', () => setTab('create'));
-    $('#tabPlay').addEventListener('click', () => setTab('play'));
-
-    // ---------------------------
-    // UI: botones topbar
-    // ---------------------------
-    $('#btnTheme').addEventListener('click', () => cycleTheme());
-
-    $('#btnReframe').addEventListener('click', () => {
+    function reframe(){
       try{
-        if (state.canvas){
-          state.canvas.reframeWithinDimensions();
-          state.canvas.redraw();
-        }
-      }catch(err){ showError(err); }
-    });
-
-    $('#btnPause').addEventListener('click', () => {
-      if (!state.running || state.solved) return;
-      if (state.paused) { hideOverlay(); resumeGame(); }
-      else pauseGame();
-    });
-
-    $('#btnBoxTop').addEventListener('click', () => {
-      if (!state.payload) return;
-      if (state.payload.mystery) return; // debería estar disabled
-      showOverlay({
-        title:'🖼️ Box top',
-        html:`<div class="hint">Ayuda visual. Atajo: <b>B</b>. (Recuerda: esto no es DRM; se puede capturar pantalla.)</div>
-              <div style="margin-top:10px;"><img class="preview" alt="Box top" src="${state.imgDataUrl}"></div>`,
-        actions:[{label:'Cerrar', className:'btn-accent', onClick: () => hideOverlay()}],
-        lock:false
-      });
-    });
-
-    $('#btnFull').addEventListener('click', async () => {
-      try{
-        if (!document.fullscreenElement){
-          await document.documentElement.requestFullscreen();
-        } else {
-          await document.exitFullscreen();
-        }
+        if (!game.canvas) return;
+        game.canvas.reframeWithinDimensions();
+        game.canvas.redraw();
       }catch{}
-    });
+    }
 
-    // ---------------------------
-    // Atajos teclado
-    // ---------------------------
-    window.addEventListener('keydown', (e) => {
+    function showBoxTop(){
+      if (game.mystery || !game.imgDataUrl) return;
+      showOverlay({
+        title: "Box top",
+        html: `<p class="hint">Ayuda visual (B). No es DRM: se puede capturar pantalla.</p><img alt="Box top" src="${game.imgDataUrl}">`,
+        actions: [{label:"Cerrar", primary:true, onClick: () => hideOverlay(true)}],
+        lock: false
+      });
+    }
+
+    async function restartSame(){
+      if (!game.payload) return;
+      showOverlay({
+        title: "Reiniciando…",
+        html: `<p><span class="spinner"></span>Preparando puzzle…</p>`,
+        actions: [],
+        lock: true
+      });
+      try{
+        await buildPuzzle(game.payload);
+        hideOverlay(true);
+      }catch(e){
+        hideOverlay(true);
+        showOverlay({
+          title: "Error",
+          html: `<p>${escapeHtml(String(e?.message || e))}</p>`,
+          actions: [{label:"Cerrar", primary:true, onClick: () => hideOverlay(true)}],
+          lock: false
+        });
+      }
+    }
+
+    // -----------------------------
+    // Keyboard shortcuts
+    // -----------------------------
+    function isTypingTarget(t){
+      const tag = (t && t.tagName) ? t.tagName.toLowerCase() : "";
+      return tag === "input" || tag === "textarea" || tag === "select" || (t && t.isContentEditable);
+    }
+
+    window.addEventListener("keydown", (e) => {
       if (isTypingTarget(e.target)) return;
-      const k = (e.key || '').toLowerCase();
-      if (k === 't') cycleTheme();
-      if (k === 'r') $('#btnReframe').click();
-      if (k === 'p') $('#btnPause').click();
-      if (k === 'b') $('#btnBoxTop').click();
-    });
 
-    // ---------------------------
-    // Crear reto
-    // ---------------------------
-    const createImage = $('#createImage');
-    const createImageInfo = $('#createImageInfo');
-
-    createImage.addEventListener('change', () => {
-      const f = createImage.files && createImage.files[0];
-      if (!f){
-        createImageInfo.textContent = 'Ninguna imagen seleccionada.';
+      if (e.key === "Escape"){
+        hideOverlay(false);
         return;
       }
-      createImageInfo.textContent = `${f.name} · ${(f.size/1024/1024).toFixed(2)} MB`;
+      if (e.key === "b" || e.key === "B") showBoxTop();
+      if (e.key === "p" || e.key === "P") togglePause();
+      if (e.key === "t" || e.key === "T") cycleTheme();
+      if (e.key === "r" || e.key === "R") reframe();
     });
 
-    $('#btnGenerate').addEventListener('click', async () => {
+    // -----------------------------
+    // Wire controls
+    // -----------------------------
+    el.btnPause.addEventListener("click", togglePause);
+    el.btnReframe.addEventListener("click", reframe);
+    el.btnBoxTop.addEventListener("click", showBoxTop);
+
+    // -----------------------------
+    // Create flow
+    // -----------------------------
+    function refreshCreateInfo(){
+      const x = clamp(Number(el.cX.value || 8), 2, 30);
+      const y = clamp(Number(el.cY.value || 6), 2, 30);
+      el.createInfo.textContent = `${x}×${y} = ${x*y} piezas`;
+    }
+    el.cX.addEventListener("input", refreshCreateInfo);
+    el.cY.addEventListener("input", refreshCreateInfo);
+    refreshCreateInfo();
+
+    el.btnGenerate.addEventListener("click", async () => {
       try{
-        const f = createImage.files && createImage.files[0];
-        if (!f) throw new Error('Selecciona una imagen.');
+        ensureSecureContext();
 
-        const piecesX = clamp(parseInt($('#piecesX').value,10)||0, 2, 30);
-        const piecesY = clamp(parseInt($('#piecesY').value,10)||0, 2, 30);
-        const solveSeconds = clamp(parseInt($('#solveSeconds').value,10)||0, 10, 86400);
-        const revealSeconds = clamp(parseInt($('#revealSeconds').value,10)||0, 1, 60);
-        const mystery = !!$('#mystery').checked;
-        const bgTheme = $('#bgTheme').value || 'blue';
-        const maxDim = clamp(parseInt($('#maxDim').value,10)||1600, 256, 4096);
-        const quality = clamp(parseFloat($('#quality').value)||0.85, 0.5, 1.0);
-        const title = ($('#title').value || '').trim();
-        const password = $('#passwordCreate').value || '';
+        const file = el.cImage.files && el.cImage.files[0];
+        if (!file) throw new Error("Selecciona una imagen.");
 
-        if (password.length < 8) throw new Error('La contraseña debe tener mínimo 8 caracteres.');
+        const piecesX = clamp(Number(el.cX.value || 8), 2, 30);
+        const piecesY = clamp(Number(el.cY.value || 6), 2, 30);
+        const solveSeconds = Math.max(1, Math.floor(Number(el.cSolve.value || 300)));
+        const revealSeconds = Math.max(0, Math.floor(Number(el.cReveal.value || 6)));
+        const mystery = !!el.cMystery.checked;
+        const bgTheme = String(el.cTheme.value || "blue");
+
+        const maxDim = clamp(Number(el.cMaxDim.value || 1600), 256, 4096);
+        const quality = clamp(Number(el.cQ.value || 0.85), 0.5, 1.0);
+
+        const title = String(el.cTitle.value || "").trim();
+        const pwd = String(el.cPwd.value || "");
+        if (pwd.length < 8) throw new Error("La contraseña debe tener mínimo 8 caracteres.");
 
         setTheme(bgTheme);
 
         showOverlay({
-          title:'Procesando…',
-          html:`<div class="hint">Redimensionando, recortando al ratio del puzzle, comprimiendo y cifrando localmente…</div>`,
-          actions:[],
-          lock:true
+          title: "Procesando…",
+          html: `<p><span class="spinner"></span>Comprimiendo y cifrando localmente…</p>`,
+          actions: [],
+          lock: true
         });
 
-        await nextFrame(); // dejar pintar overlay
-
-        // crop a ratio del puzzle para que box top/reveal coincidan con piezas
+        // crop to puzzle ratio to look nicer (less letterboxing)
         const targetAspect = piecesX / piecesY;
-
-        const img = await compressAndCropImage(f, {maxDim, quality, targetAspect});
-        await nextFrame();
+        const comp = await compressImageToJpegBase64(file, {maxDim, quality, targetAspect});
 
         const payload = {
-          mime: img.mime,
-          img: u8ToB64(img.bytes),
-          piecesX, piecesY,
+          v: 1,
+          mime: comp.mime,
+          img: comp.imgB64,
+          piecesX,
+          piecesY,
           solveSeconds,
           revealSeconds,
           mystery,
           bgTheme,
           createdAt: new Date().toISOString(),
-          title: title || undefined
+          title: title || undefined,
+          compression: { maxDim, quality }
         };
 
-        const jpuz = await encryptPayload(payload, password, 150000);
+        const jpuz = await encryptToJpuz(pwd, payload);
         const text = JSON.stringify(jpuz, null, 2);
 
-        hideOverlay();
-        downloadText('reto.jpuz', text);
+        downloadText("reto.jpuz", text);
 
+        hideOverlay(true);
         showOverlay({
-          title:'✅ Reto generado',
-          html:`<div class="hint">
-                  Se descargó <b>reto.jpuz</b>.<br/>
-                  Comparte el archivo y la contraseña por separado.
-                </div>`,
-          actions:[{label:'Cerrar', className:'btn-accent', onClick: () => hideOverlay()}],
-          lock:false
+          title: "Reto generado",
+          html: `<p>Se descargó <code>reto.jpuz</code>.</p><p class="hint">Comparte archivo y contraseña por separado.</p>`,
+          actions: [{label:"Cerrar", primary:true, onClick: () => hideOverlay(true)}],
+          lock: false
         });
 
-      }catch(err){
-        hideOverlay();
-        showError(err);
+        setStatus("Reto creado. Puedes ir a “Jugar” y cargar el .jpuz.", "good");
+
+      }catch(e){
+        hideOverlay(true);
+        showOverlay({
+          title: "Error",
+          html: `<p>${escapeHtml(String(e?.message || e))}</p>`,
+          actions: [{label:"Cerrar", primary:true, onClick: () => hideOverlay(true)}],
+          lock: false
+        });
+        setStatus("Error.", "bad");
       }
     });
 
-    // ---------------------------
-    // Jugar reto
-    // ---------------------------
-    const jpuzFile = $('#jpuzFile');
-    const jpuzInfo = $('#jpuzInfo');
-    const btnStart = $('#btnStart');
-
-    jpuzFile.addEventListener('change', async () => {
+    // -----------------------------
+    // Play flow
+    // -----------------------------
+    el.btnStart.addEventListener("click", async () => {
       try{
-        const f = jpuzFile.files && jpuzFile.files[0];
-        state.jpuzObj = null;
-        state.payload = null;
-        state.imgDataUrl = null;
-        clearPuzzle();
-        setTimer(0);
-        setStatus('Listo');
+        ensureSecureContext();
 
-        if (!f){
-          jpuzInfo.textContent = 'Ningún reto cargado.';
-          btnStart.disabled = true;
-          return;
-        }
+        const f = el.pFile.files && el.pFile.files[0];
+        if (!f) throw new Error("Selecciona un .jpuz.");
+        const pwd = String(el.pPwd.value || "");
+        if (pwd.length < 8) throw new Error("Contraseña inválida (mínimo 8).");
+
+        showOverlay({
+          title: "Descifrando…",
+          html: `<p><span class="spinner"></span>Descifrando localmente…</p>`,
+          actions: [],
+          lock: true
+        });
 
         const text = await f.text();
-        let obj;
-        try{ obj = JSON.parse(text); }catch{ throw new Error('El archivo .jpuz no es JSON válido.'); }
+        let jpuz;
+        try{ jpuz = JSON.parse(text); }catch{ throw new Error("El archivo .jpuz no es JSON válido."); }
 
-        state.jpuzObj = obj;
-        jpuzInfo.textContent = `${f.name} · ${(f.size/1024).toFixed(1)} KB · v=${obj.v ?? '?'}`;
-        btnStart.disabled = false;
+        const payload = await decryptFromJpuz(pwd, jpuz);
 
-      }catch(err){
-        showError(err);
+        hideOverlay(true);
+
+        showOverlay({
+          title: "Preparando puzzle…",
+          html: `<p><span class="spinner"></span>Generando piezas…</p>`,
+          actions: [],
+          lock: true
+        });
+
+        await buildPuzzle(payload);
+
+        hideOverlay(true);
+
+      }catch(e){
+        hideOverlay(true);
+        showOverlay({
+          title: "Error",
+          html: `<p>${escapeHtml(String(e?.message || e))}</p>`,
+          actions: [{label:"Cerrar", primary:true, onClick: () => hideOverlay(true)}],
+          lock: false
+        });
+        setStatus("Error.", "bad");
       }
     });
 
-    btnStart.addEventListener('click', async () => {
+    el.btnRestart.addEventListener("click", () => restartSame());
+
+    // -----------------------------
+    // Resize
+    // -----------------------------
+    let resizeT = null;
+    window.addEventListener("resize", () => {
+      if (!game.canvas) return;
+      if (resizeT) clearTimeout(resizeT);
+      resizeT = setTimeout(() => {
+        try{
+          const {w,h} = boardSize();
+          game.canvas.resize(w,h);
+          game.canvas.redraw();
+        }catch{}
+      }, 120);
+    });
+
+    // -----------------------------
+    // Small helpers
+    // -----------------------------
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    // -----------------------------
+    // Boot: load libs then enable app
+    // -----------------------------
+    async function boot(){
       try{
-        if (!state.jpuzObj) throw new Error('Carga un archivo .jpuz primero.');
-        const pwd = $('#passwordPlay').value || '';
-        if (!pwd) throw new Error('Escribe la contraseña.');
-        showOverlay({title:'Descifrando…', html:`<div class="hint">Descifrando localmente (PBKDF2 + AES-GCM)…</div>`, actions:[], lock:true});
-        await nextFrame();
+        const { konvaURL, hbURL } = await loadLibs();
 
-        const payload = await decryptJpuz(state.jpuzObj, pwd);
+        setStatus("Listo. Crea un reto o carga un .jpuz.", "neutral");
+        el.timeText.textContent = "--:--";
 
-        hideOverlay();
-        await startPuzzleFromPayload(payload);
+        // Now app is ready
+        el.btnGenerate.disabled = false;
+        el.btnStart.disabled = false;
 
-      }catch(err){
-        hideOverlay();
-        showError(err);
+        // Explain what got loaded (helpful for debugging)
+        // (Shown only if you open overlay manually; not spamming)
+        // console.log({konvaURL, hbURL});
+
+      }catch(e){
+        setStatus("No se pudieron cargar librerías.", "bad");
+        showOverlay({
+          title: "No se pudieron cargar librerías (Konva/Headbreaker)",
+          html: `
+            <p><b>Detalle:</b> ${escapeHtml(String(e?.message || e))}</p>
+            <p class="hint">
+              Esto suele pasar por: bloqueo de red/CDN, adblock, o falta de archivos vendorizados.
+              <br><br>
+              <b>Solución más robusta (sin depender de CDNs):</b>
+              <br>1) Crea carpeta <code>vendor/</code> en tu repo.
+              <br>2) Descarga y guarda:
+              <br>&nbsp;&nbsp;• <code>vendor/konva.min.js</code>
+              <br>&nbsp;&nbsp;• <code>vendor/headbreaker.js</code>
+              <br>3) Recarga la página: el loader de este index los intentará primero.
+            </p>
+            <p class="hint">
+              Nota: para cifrar/descifrar necesitas HTTPS (GitHub Pages).
+            </p>
+          `,
+          actions: [{label:"Cerrar", primary:true, onClick: () => hideOverlay(true)}],
+          lock: false
+        });
       }
-    });
+    }
 
-    $('#btnRestart').addEventListener('click', () => restartGame());
+    // Disable actions until libs load
+    el.btnGenerate.disabled = true;
+    el.btnStart.disabled = true;
 
-    // ---------------------------
-    // Resize: ajustar canvas y marco guía
-    // ---------------------------
-    window.addEventListener('resize', () => {
-      if (!state.canvas || !state.payload) return;
-      try{
-        const {w, h} = boardSize();
-        state.canvas.resize(w, h);
-        state.canvas.redraw();
-        // (No recalculamos pieceSize en caliente; para eso, reiniciar.)
-      }catch{}
-    });
+    // Controls initial state
+    enableControls(false);
+    setTimerSeconds(0);
 
-    // init
-    setTheme('blue');
-    setTimer(0);
-    setStatus('Listo');
+    // Tab initial
+    setTab("create");
 
+    // Reframe button action (works only when playing)
+    el.btnReframe.addEventListener("click", reframe);
+
+    // Pause button
+    el.btnPause.addEventListener("click", togglePause);
+
+    // Box top button
+    el.btnBoxTop.addEventListener("click", showBoxTop);
+
+    // Reset to idle on load
+    clearBoard();
+
+    // Start
+    boot();
   })();
   </script>
 </body>
