@@ -565,17 +565,10 @@
   </div>
 
   <!-- Dependencias permitidas: motor jigsaw Headbreaker + Konva -->
-  <script defer src="https://cdn.jsdelivr.net/npm/konva@8.4.3/konva.min.js"></script>
-  <script defer src="https://flbulgarelli.github.io/headbreaker/js/headbreaker.js"></script>
+<script src="https://unpkg.com/konva@9/konva.min.js"></script>
+<script src="https://unpkg.com/headbreaker/dist/headbreaker.js"></script>
 
-
-  <script defer>
-  // Guardia: evita “ReferenceError” y da un mensaje claro
-  const HB = window.headbreaker;
-  if (!HB || !HB.Canvas) {
-    alert("No se pudo cargar Headbreaker. Revisa la pestaña Network (headbreaker.js) y que estés en HTTPS.");
-    throw new Error("Headbreaker no cargó");
-  }
+  <script>
   (() => {
     'use strict';
 
@@ -934,7 +927,7 @@
       const strokeWidth = clamp(pieceSize * 0.028, 0.8, 2.4);
 
       // crear canvas Headbreaker
-      const canvas = new HB.Canvas('canvasHost', {
+      const canvas = new headbreaker.Canvas('canvasHost', {
         width: w,
         height: h,
         pieceSize: pieceSize,
@@ -947,7 +940,7 @@
         fixed: true,
         preventOffstageDrag: true,
         maxPiecesCount: {x: piecesX, y: piecesY},
-        outline: new HB.outline.Rounded()
+        outline: new headbreaker.outline.Rounded()
       });
 
       // Alinear imagen al puzzle (como el ratio ya se croppea en creación, encaja)
@@ -957,7 +950,7 @@
       canvas.autogenerate({
         horizontalPiecesCount: piecesX,
         verticalPiecesCount: piecesY,
-        insertsGenerator: HB.generators.random,
+        insertsGenerator: headbreaker.generators.random,
         metadata: makeGridMetadata(piecesX, piecesY)
       });
 
@@ -1363,5 +1356,6 @@
   </script>
 </body>
 </html>
+
 
 
