@@ -576,12 +576,6 @@
     alert("No se pudo cargar Headbreaker. Revisa la pestaña Network (headbreaker.js) y que estés en HTTPS.");
     throw new Error("Headbreaker no cargó");
   }
-
-  // …tu código del puzzle aquí, usando HB en vez de headbreaker…
-  // Ejemplo:
-  // const canvas = new HB.Canvas('canvasHost', {...});
-  </script>
-  <script>
   (() => {
     'use strict';
 
@@ -940,7 +934,7 @@
       const strokeWidth = clamp(pieceSize * 0.028, 0.8, 2.4);
 
       // crear canvas Headbreaker
-      const canvas = new headbreaker.Canvas('canvasHost', {
+      const canvas = new HB.Canvas('canvasHost', {
         width: w,
         height: h,
         pieceSize: pieceSize,
@@ -953,7 +947,7 @@
         fixed: true,
         preventOffstageDrag: true,
         maxPiecesCount: {x: piecesX, y: piecesY},
-        outline: new headbreaker.outline.Rounded()
+        outline: new HB.outline.Rounded()
       });
 
       // Alinear imagen al puzzle (como el ratio ya se croppea en creación, encaja)
@@ -963,7 +957,7 @@
       canvas.autogenerate({
         horizontalPiecesCount: piecesX,
         verticalPiecesCount: piecesY,
-        insertsGenerator: headbreaker.generators.random,
+        insertsGenerator: HB.generators.random,
         metadata: makeGridMetadata(piecesX, piecesY)
       });
 
