@@ -2,1128 +2,1831 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Jigsaw Challenge</title>
-
-  <script src="https://flbulgarelli.github.io/headbreaker/js/headbreaker.js"></script>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light" />
+  <title>JPuz — Crear y Jugar retos (100% local)</title>
 
   <style>
     :root{
-      --page-bg: #f3f4f6;
-      --panel-bg: #ffffff;
-      --panel-border: rgba(17,24,39,.10);
-      --text: #111827;
-      --muted2: rgba(17,24,39,.55);
+      --bg0: #0b0f14;
+      --bg1: #101826;
+      --panel: rgba(10,14,20,.72);
+      --panel2: rgba(10,14,20,.55);
+      --stroke: rgba(255,255,255,.10);
+      --stroke2: rgba(255,255,255,.16);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.70);
+      --muted2: rgba(255,255,255,.55);
+      --good: #53d38a;
+      --warn: #ffca5c;
+      --bad:  #ff5a6b;
 
-      --shadow: 0 12px 28px rgba(17,24,39,.10);
-      --shadow2: 0 6px 16px rgba(17,24,39,.10);
+      --btn: rgba(255,255,255,.10);
+      --btnHover: rgba(255,255,255,.16);
+      --btnActive: rgba(255,255,255,.22);
 
-      --felt: #4b6f86;
-      --felt2: #3f647c;
-      --toolbar-bg: rgba(12, 24, 34, .55);
-      --toolbar-border: rgba(255,255,255,.12);
-      --button-bg: rgba(255,255,255,.10);
-      --button-bg-hover: rgba(255,255,255,.16);
-      --pill-bg: rgba(0,0,0,.28);
-      --pill-text: rgba(255,255,255,.92);
+      --shadow: 0 14px 50px rgba(0,0,0,.35);
+
+      --feltA: rgba(255,255,255,.05);
+      --feltB: rgba(255,255,255,.03);
+      --feltC: rgba(0,0,0,.15);
+
+      --feltBase: #0b1b2b; /* theme default */
+      --feltGlow: rgba(110, 180, 255, .08);
+
+      --frame: rgba(255,255,255,.22);
+
+      --overlayBg: rgba(0,0,0,.72);
+      --overlayLockBg: rgba(5,6,7,.98);
+
+      --radius: 14px;
+      --radiusSm: 10px;
+      --gap: 12px;
+      --gapSm: 10px;
+
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
 
-    .theme-slate{
-      --felt: #5a6570;
-      --felt2:#4f5a64;
-      --toolbar-bg: rgba(18, 22, 26, .56);
+    body[data-theme="blue"]{
+      --feltBase: #0b1b2b;
+      --feltGlow: rgba(110, 180, 255, .10);
     }
-    .theme-forest{
-      --felt: #2f6b5c;
-      --felt2:#2a5e51;
-      --toolbar-bg: rgba(10, 22, 18, .56);
+    body[data-theme="slate"]{
+      --feltBase: #14161a;
+      --feltGlow: rgba(210, 210, 210, .07);
+    }
+    body[data-theme="forest"]{
+      --feltBase: #0d1b13;
+      --feltGlow: rgba(120, 255, 170, .08);
     }
 
-    *{ box-sizing: border-box; }
+    *{ box-sizing:border-box; }
+    html, body{ height:100%; }
     body{
       margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      font-family: var(--sans);
+      background:
+        radial-gradient(1200px 800px at 10% 10%, rgba(255,255,255,.05), transparent 55%),
+        radial-gradient(900px 700px at 90% 0%, rgba(255,255,255,.04), transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg0));
       color: var(--text);
-      background: var(--page-bg);
+      overflow:hidden;
     }
 
-    .brandbar{
-      height: 64px;
+    #app{
+      height:100%;
+      display:grid;
+      grid-template-rows: auto 1fr;
+      min-height:0;
+    }
+
+    /* Topbar */
+    #topbar{
+      position:relative;
+      z-index:10;
       display:flex;
       align-items:center;
-      justify-content: space-between;
-      padding: 0 16px;
-      background: linear-gradient(180deg, #2f5872 0%, #2a516a 100%);
-      color: rgba(255,255,255,.92);
-      border-bottom: 1px solid rgba(255,255,255,.12);
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 12px;
+      background: rgba(10,14,20,.78);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,.08);
     }
-    .brand-left{
-      display:flex; align-items:center; gap: 12px;
-      min-width: 240px;
+    #brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width: 220px;
     }
-    .logo{
-      width: 34px; height: 34px; border-radius: 10px;
-      display:grid; place-items:center;
-      background: rgba(255,255,255,.14);
-      border: 1px solid rgba(255,255,255,.18);
-      box-shadow: 0 10px 24px rgba(0,0,0,.18);
+    #logo{
+      width:34px;height:34px;border-radius:10px;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.25), rgba(255,255,255,.10) 35%, rgba(0,0,0,.15) 60%),
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: 0 10px 26px rgba(0,0,0,.28);
     }
-    .brand-title{
-      display:flex; flex-direction: column; line-height: 1.1;
+    #brandText{
+      display:flex;
+      flex-direction:column;
+      line-height:1.15;
     }
-    .brand-title strong{ font-size: 14px; letter-spacing: .2px; }
-    .brand-title span{ font-size: 12px; opacity:.80; }
-    .brand-right{
-      display:flex; align-items:center; gap: 10px;
+    #brandText b{ font-size: 14px; letter-spacing:.2px; }
+    #brandText span{ font-size: 12px; color: var(--muted2); }
+
+    #statusLine{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width: 260px;
+      flex: 1 1 auto;
+      justify-content:center;
+    }
+    #statusPill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow: 0 8px 22px rgba(0,0,0,.22);
+      max-width: 58vw;
+    }
+    #statusDot{
+      width:9px;height:9px;border-radius:999px;
+      background: rgba(255,255,255,.40);
+      box-shadow: 0 0 0 3px rgba(255,255,255,.06);
+      flex: 0 0 auto;
+    }
+    #statusText{
+      font-size: 13px;
+      color: var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    #timer{
+      font-family: var(--mono);
+      font-size: 14px;
+      padding:6px 10px;
+      border-radius: 10px;
+      background: rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.10);
+      min-width: 92px;
+      text-align:center;
+    }
+
+    #controls{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      min-width: 220px;
+      justify-content:flex-end;
+    }
+
+    button, input, select{
+      font: inherit;
+      color: inherit;
+    }
+
+    .btn{
+      appearance:none;
+      border:1px solid rgba(255,255,255,.10);
+      background: var(--btn);
+      padding:8px 10px;
+      border-radius: 12px;
+      cursor:pointer;
+      transition: transform .04s ease, background .15s ease, border-color .15s ease;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      user-select:none;
+    }
+    .btn:hover{ background: var(--btnHover); border-color: rgba(255,255,255,.14); }
+    .btn:active{ transform: translateY(1px); background: var(--btnActive); }
+    .btn[disabled]{ opacity:.45; cursor:not-allowed; }
+    .btn .k{
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted2);
+      border:1px solid rgba(255,255,255,.12);
+      padding:2px 6px;
+      border-radius: 8px;
+      background: rgba(0,0,0,.18);
+    }
+
+    .btnPrimary{
+      background: rgba(83,211,138,.16);
+      border-color: rgba(83,211,138,.28);
+    }
+    .btnPrimary:hover{ background: rgba(83,211,138,.22); border-color: rgba(83,211,138,.34); }
+
+    .btnDanger{
+      background: rgba(255,90,107,.14);
+      border-color: rgba(255,90,107,.30);
+    }
+    .btnDanger:hover{ background: rgba(255,90,107,.20); border-color: rgba(255,90,107,.36); }
+
+    /* Layout */
+    #layout{
+      min-height:0;
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap: 0;
+    }
+
+    #panel{
+      min-height:0;
+      border-right: 1px solid rgba(255,255,255,.08);
+      background: rgba(8,10,14,.55);
+      backdrop-filter: blur(10px);
+      display:flex;
+      flex-direction:column;
+    }
+
+    #panelHeader{
+      padding: 12px 12px 10px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+
+    #tabs{
+      display:flex;
+      gap:8px;
+      padding:10px 12px 0;
+    }
+    .tab{
+      flex:1 1 50%;
+      padding:9px 10px;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      cursor:pointer;
+      text-align:center;
+      transition: background .15s ease, border-color .15s ease;
+      user-select:none;
+    }
+    .tab:hover{ background: rgba(255,255,255,.09); }
+    .tab.active{
+      background: rgba(255,255,255,.13);
+      border-color: rgba(255,255,255,.16);
+    }
+
+    #panelBody{
+      padding: 12px;
+      overflow:auto;
+      min-height:0;
+    }
+
+    .section{
+      background: rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      padding: 12px;
+      box-shadow: 0 12px 34px rgba(0,0,0,.16);
+      margin-bottom: 12px;
+    }
+    .section h3{
+      margin:0 0 10px 0;
+      font-size: 13px;
+      letter-spacing:.2px;
+      color: rgba(255,255,255,.88);
+    }
+    .section p, .section li{
+      margin: 6px 0;
+      color: var(--muted2);
+      font-size: 12.5px;
+      line-height: 1.35;
+    }
+    .grid2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    .grid3{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap:10px;
+    }
+    label{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
       font-size: 12px;
-      opacity: .9;
+      color: var(--muted);
     }
-    .kbd{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    input[type="text"], input[type="password"], input[type="number"], select{
+      width:100%;
+      padding:10px 10px;
+      border-radius: 12px;
+      background: rgba(0,0,0,.20);
+      border:1px solid rgba(255,255,255,.10);
+      outline:none;
+    }
+    input[type="file"]{
+      width:100%;
+      padding:9px 10px;
+      border-radius: 12px;
+      background: rgba(0,0,0,.12);
+      border:1px dashed rgba(255,255,255,.16);
+      outline:none;
+    }
+    .row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .hint{
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted2);
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(0,0,0,.18);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .badge{
       font-size: 11px;
       padding: 2px 8px;
       border-radius: 999px;
-      background: rgba(255,255,255,.14);
-      border: 1px solid rgba(255,255,255,.16);
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+    }
+    .warn{
+      border-color: rgba(255,202,92,.28) !important;
+      background: rgba(255,202,92,.10) !important;
+      color: rgba(255,240,210,.95) !important;
     }
 
-    .app{
-      display:grid;
-      grid-template-columns: 360px 1fr;
-      gap: 14px;
-      padding: 14px;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    .panel{
-      background: var(--panel-bg);
-      border: 1px solid var(--panel-border);
-      border-radius: 14px;
-      box-shadow: var(--shadow2);
-      overflow: hidden;
-      min-height: calc(100vh - 64px - 28px);
-    }
-    .panel-header{
-      padding: 14px 14px 12px;
-      border-bottom: 1px solid rgba(17,24,39,.08);
-      background: linear-gradient(180deg, rgba(17,24,39,.03) 0%, rgba(17,24,39,.01) 100%);
-    }
-    .tabs{
-      display:flex;
-      gap: 8px;
-      background: rgba(17,24,39,.04);
-      padding: 6px;
-      border-radius: 12px;
-      border: 1px solid rgba(17,24,39,.06);
-    }
-    .tab{
-      flex:1;
-      padding: 10px 10px;
-      font-weight: 800;
-      font-size: 12px;
-      border-radius: 10px;
-      border: 1px solid transparent;
-      background: transparent;
-      cursor: pointer;
-      color: rgba(17,24,39,.75);
-    }
-    .tab.active{
-      background: #fff;
-      border-color: rgba(17,24,39,.10);
-      box-shadow: 0 8px 18px rgba(17,24,39,.10);
-      color: rgba(17,24,39,.92);
-    }
-    .panel-body{ padding: 14px; }
-    .section-title{
-      margin: 14px 0 10px;
-      font-size: 12px;
-      font-weight: 900;
-      letter-spacing: .18px;
-      text-transform: uppercase;
-      color: rgba(17,24,39,.60);
-    }
-    label{
-      display:block;
-      margin-top: 10px;
-      font-size: 12px;
-      color: rgba(17,24,39,.78);
-      font-weight: 700;
-    }
-    .hint{
-      font-size: 12px;
-      color: var(--muted2);
-      margin-top: 6px;
-      line-height: 1.35;
-    }
-    input, select, button{
-      width: 100%;
-      padding: 10px 12px;
-      margin-top: 7px;
-      border-radius: 12px;
-      border: 1px solid rgba(17,24,39,.12);
-      background: #fff;
-      color: var(--text);
-      outline: none;
-    }
-    input:focus, select:focus{
-      border-color: rgba(37,99,235,.35);
-      box-shadow: 0 0 0 4px rgba(37,99,235,.12);
-    }
-    .row{ display:flex; gap: 10px; }
-    .row > *{ flex:1; }
-
-    .btn{
-      cursor: pointer;
-      font-weight: 900;
-      border: 1px solid rgba(17,24,39,.14);
-      background: linear-gradient(180deg, rgba(17,24,39,.03) 0%, rgba(17,24,39,.01) 100%);
-    }
-    .btn:hover{ box-shadow: 0 10px 18px rgba(17,24,39,.10); }
-    .btn-primary{
-      border-color: rgba(37,99,235,.25);
-      background: linear-gradient(180deg, rgba(37,99,235,.14) 0%, rgba(37,99,235,.06) 100%);
-    }
-    .btn-danger{
-      border-color: rgba(239,68,68,.25);
-      background: linear-gradient(180deg, rgba(239,68,68,.12) 0%, rgba(239,68,68,.05) 100%);
-    }
-
-    .filebox{
-      border: 1px dashed rgba(17,24,39,.22);
-      background: rgba(17,24,39,.02);
-      padding: 12px;
-      border-radius: 14px;
-    }
-    .filemeta{
-      margin-top: 8px;
-      font-size: 12px;
-      color: rgba(17,24,39,.62);
-      display:flex; justify-content: space-between; gap: 10px;
-    }
-    .filemeta span{ white-space: nowrap; overflow:hidden; text-overflow: ellipsis; }
-
-    .download{
-      display:none;
-      margin-top: 10px;
-      text-align:center;
-      font-weight: 900;
-      padding: 10px 12px;
-      border-radius: 12px;
-      text-decoration: none;
-      border: 1px solid rgba(17,24,39,.14);
-      background: rgba(17,24,39,.03);
-      color: rgba(17,24,39,.88);
-    }
-    .download:hover{ box-shadow: 0 10px 18px rgba(17,24,39,.10); }
-
-    .stage{
-      border-radius: 14px;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-      border: 1px solid rgba(17,24,39,.10);
-      min-height: calc(100vh - 64px - 28px);
-      display:flex;
-      flex-direction: column;
-      background: linear-gradient(180deg, rgba(255,255,255,.65) 0%, rgba(255,255,255,.28) 100%);
-    }
-
-    .toolbar{
-      height: 54px;
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      padding: 0 10px;
-      background: var(--toolbar-bg);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid var(--toolbar-border);
-      color: rgba(255,255,255,.92);
-    }
-    .tool-left, .tool-right{ display:flex; align-items:center; gap: 8px; }
-    .iconbtn{
-      width: 40px;
-      height: 36px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: var(--button-bg);
-      display:grid;
-      place-items:center;
-      color: rgba(255,255,255,.92);
-      cursor: pointer;
-      user-select:none;
-    }
-    .iconbtn:hover{ background: var(--button-bg-hover); }
-    .iconbtn:active{ transform: translateY(1px); }
-    .iconbtn svg{ width: 18px; height: 18px; opacity: .95; }
-
-    .pill{
-      font-variant-numeric: tabular-nums;
-      padding: 8px 10px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: var(--pill-bg);
-      color: var(--pill-text);
-      font-weight: 900;
-      font-size: 12px;
-      display:flex; align-items:center; gap: 8px;
-    }
-    .statusline{
-      font-size: 12px;
-      color: rgba(255,255,255,.80);
-      font-weight: 800;
-      padding: 0 8px;
-      max-width: 45vw;
+    /* Stage */
+    #stage{
+      min-height:0;
+      position:relative;
       overflow:hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      background: transparent;
     }
 
-    .surface{
-      position: relative;
-      flex: 1;
-      background:
-        radial-gradient(1200px 600px at 20% 10%, rgba(255,255,255,.15) 0%, rgba(255,255,255,0) 55%),
-        radial-gradient(1000px 520px at 80% 20%, rgba(0,0,0,.18) 0%, rgba(0,0,0,0) 50%),
-        linear-gradient(180deg, var(--felt) 0%, var(--felt2) 100%);
-    }
-    .surface:before{
-      content:"";
-      position:absolute; inset:0;
-      background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.04) 0 2px, rgba(0,0,0,.02) 2px 4px);
-      opacity: .30;
-      pointer-events:none;
-    }
-
-    #workspace{
+    #puzzleWrapper{
       position:absolute;
-      inset: 12px;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(0,0,0,.14);
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,.10);
+      inset: 0;
+      min-height:0;
+      background:
+        radial-gradient(1200px 800px at 18% 25%, var(--feltGlow), transparent 55%),
+        radial-gradient(900px 650px at 82% 30%, rgba(255,255,255,.05), transparent 60%),
+        radial-gradient(2px 2px at 20% 10%, var(--feltA), transparent 60%),
+        radial-gradient(2px 2px at 60% 40%, var(--feltB), transparent 60%),
+        radial-gradient(2px 2px at 80% 70%, var(--feltB), transparent 60%),
+        radial-gradient(2px 2px at 10% 80%, var(--feltB), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.10)),
+        radial-gradient(1000px 800px at 50% 50%, rgba(0,0,0,.10), rgba(0,0,0,.30)),
+        linear-gradient(180deg, var(--feltBase), rgba(0,0,0,.35));
     }
 
     #targetFrame{
       position:absolute;
-      border-radius: 14px;
-      border: 2px dashed rgba(255,255,255,.22);
-      background: rgba(255,255,255,.04);
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,.35), 0 18px 55px rgba(0,0,0,.35);
+      inset: 0;
       pointer-events:none;
-      z-index: 2;
+      display:block;
+    }
+    #targetFrame::before{
+      content:"";
+      position:absolute;
+      left: var(--frameLeft, 50%);
+      top: var(--frameTop, 50%);
+      width: var(--frameW, 480px);
+      height: var(--frameH, 360px);
+      transform: translate(-50%,-50%);
+      border-radius: 14px;
+      border: 2px dashed var(--frame);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.25), 0 12px 30px rgba(0,0,0,.20);
+      background: rgba(0,0,0,.04);
+    }
+    #targetFrame::after{
+      content:"Marco guía";
+      position:absolute;
+      left: var(--frameLeft, 50%);
+      top: calc(var(--frameTop, 50%) - (var(--frameH, 360px) / 2) - 12px);
+      transform: translate(-50%,-50%);
+      font-size: 11px;
+      color: rgba(255,255,255,.65);
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.22);
+      backdrop-filter: blur(6px);
     }
 
-    #puzzle{
+    #canvasHost{
       position:absolute;
       inset: 0;
-      z-index: 3;
     }
 
+    /* Overlay (modal) */
     #overlay{
-      position:absolute;
+      position:fixed;
       inset: 0;
-      display:none;
+      display:flex;
       align-items:center;
       justify-content:center;
+      z-index: 100;
+      background: var(--overlayBg);
       padding: 18px;
+    }
+    #overlay.hidden{ display:none; }
+
+    #overlay.locked{ background: var(--overlayLockBg); }
+    #overlayCard{
+      width: min(720px, 92vw);
+      max-height: min(80vh, 720px);
+      overflow:auto;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(12,14,18,.92);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+    #overlayHeader{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      margin-bottom: 10px;
+    }
+    #overlayTitle{
+      margin:0;
+      font-size: 16px;
+      letter-spacing:.2px;
+    }
+    #overlayClose{
+      margin-left:auto;
       border-radius: 12px;
-      background: rgba(0,0,0,.72);
-      color: rgba(255,255,255,.92);
-      text-align: center;
-      z-index: 20;
+      padding:8px 10px;
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.10);
+      cursor:pointer;
     }
-    #overlay.active{ display:flex; }
-    #overlay .box{
-      width: min(560px, 92%);
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.14);
-      border-radius: 14px;
-      padding: 14px 14px 12px;
-      box-shadow: 0 22px 55px rgba(0,0,0,.45);
-    }
-    #overlay h2{
-      margin: 6px 0 8px;
-      font-size: 18px;
-      letter-spacing: .2px;
-    }
-    #overlay p{
-      margin: 6px 0;
+    #overlayClose:hover{ background: rgba(255,255,255,.12); }
+    #overlayBody{
+      color: var(--muted);
       font-size: 13px;
-      color: rgba(255,255,255,.84);
-      line-height: 1.35;
-      white-space: pre-wrap;
+      line-height: 1.45;
     }
+    #overlayBody .small{ color: var(--muted2); font-size:12.5px; }
+    #overlayBody code{ font-family: var(--mono); font-size: 12px; }
+    #overlayActions{
+      display:flex;
+      gap:10px;
+      justify-content:flex-end;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,.10);
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .spinner{
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      border: 2px solid rgba(255,255,255,.22);
+      border-top-color: rgba(255,255,255,.85);
+      display:inline-block;
+      animation: spin .8s linear infinite;
+      vertical-align:-2px;
+      margin-right: 8px;
+    }
+    @keyframes spin{ to { transform: rotate(360deg); } }
 
-    #revealImg{
-      max-width: 92%;
-      max-height: 92%;
-      border-radius: 12px;
-      box-shadow: 0 18px 55px rgba(0,0,0,.50);
-      display:none;
-      position:absolute;
-      left:50%; top:50%;
-      transform: translate(-50%,-50%);
-      z-index: 30;
+    /* Toast */
+    #toast{
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      z-index: 110;
+      background: rgba(0,0,0,.58);
       border: 1px solid rgba(255,255,255,.14);
+      backdrop-filter: blur(10px);
+      padding: 10px 12px;
+      border-radius: 999px;
+      color: rgba(255,255,255,.92);
+      box-shadow: 0 12px 30px rgba(0,0,0,.35);
+      display:none;
+      max-width: min(88vw, 680px);
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      font-size: 13px;
     }
-    #revealImg.active{ display:block; }
+    #toast.show{ display:block; }
 
+    /* Responsive */
     @media (max-width: 980px){
-      .app{ grid-template-columns: 1fr; }
-      .panel{ min-height: unset; }
-      .stage{ min-height: 64vh; }
-      .statusline{ max-width: 60vw; }
+      #layout{ grid-template-columns: 330px 1fr; }
+    }
+    @media (max-width: 880px){
+      body{ overflow:auto; }
+      #app{ grid-template-rows: auto auto 1fr; }
+      #layout{
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+      }
+      #panel{
+        border-right: none;
+        border-bottom: 1px solid rgba(255,255,255,.08);
+      }
+      #panelBody{ max-height: 42vh; }
+      #controls{ min-width: 0; }
+      #brand{ min-width: 0; }
+      #statusLine{ min-width: 0; }
+      #statusPill{ max-width: 52vw; }
     }
   </style>
 </head>
-<body>
 
-<header class="brandbar">
-  <div class="brand-left">
-    <div class="logo" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none">
-        <path d="M7 7h3.2c.3-1.2 1.4-2 2.8-2 1.7 0 3 1.3 3 3 0 1.4-.8 2.5-2 2.8V14h3v3.2c1.2.3 2 1.4 2 2.8 0 1.7-1.3 3-3 3-1.4 0-2.5-.8-2.8-2H14v-3h-4v3.2c-1.2.3-2 1.4-2 2.8 0 1.7 1.3 3 3 3 1.4 0 2.5-.8 2.8-2H17" stroke="rgba(255,255,255,.92)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </div>
-    <div class="brand-title">
-      <strong>Jigsaw Challenge</strong>
-      <span>Reto privado (foto cifrada) · Tiempo límite · Revelado controlado</span>
+<body data-theme="blue">
+  <div id="app">
+    <header id="topbar" aria-label="Controles del juego">
+      <div id="brand">
+        <div id="logo" aria-hidden="true"></div>
+        <div id="brandText">
+          <b>JPuz</b>
+          <span>Crear · Compartir .jpuz · Jugar (todo local)</span>
+        </div>
+      </div>
+
+      <div id="statusLine">
+        <div id="statusPill" aria-live="polite" aria-atomic="true">
+          <span id="statusDot" aria-hidden="true"></span>
+          <span id="statusText">Listo. Crea un reto o carga un .jpuz.</span>
+        </div>
+        <div id="timer" title="Tiempo restante (mm:ss)" aria-label="Tiempo restante">
+          <span id="timeDisplay">--:--</span>
+        </div>
+      </div>
+
+      <div id="controls">
+        <button class="btn" id="btnBoxTop" title="Box top (B)" aria-label="Box top (vista previa)">
+          🧩 <span class="k">B</span>
+        </button>
+        <button class="btn" id="btnPause" title="Pausar/Reanudar (P)" aria-label="Pausar o reanudar">
+          ⏸️ <span class="k">P</span>
+        </button>
+        <button class="btn" id="btnTheme" title="Cambiar tema (T)" aria-label="Cambiar tema">
+          🎨 <span class="k">T</span>
+        </button>
+        <button class="btn" id="btnReframe" title="Reencuadrar piezas (R)" aria-label="Reencuadrar piezas">
+          🧭 <span class="k">R</span>
+        </button>
+        <button class="btn" id="btnFullscreen" title="Pantalla completa (opcional)" aria-label="Pantalla completa">
+          ⛶
+        </button>
+        <button class="btn" id="btnPanel" title="Mostrar/ocultar panel" aria-label="Mostrar u ocultar panel">
+          ☰
+        </button>
+      </div>
+    </header>
+
+    <div id="layout">
+      <aside id="panel" aria-label="Panel de creación y carga">
+        <div id="panelHeader">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="badge">Sin backend</span>
+            <span class="badge">WebCrypto</span>
+            <span class="badge">Headbreaker</span>
+          </div>
+          <span id="secureBadge" class="badge warn" style="display:none;">HTTPS requerido</span>
+        </div>
+
+        <div id="tabs">
+          <button class="tab active" data-tab="create" type="button">Crear</button>
+          <button class="tab" data-tab="play" type="button">Jugar</button>
+        </div>
+
+        <div id="panelBody">
+          <!-- CREATE -->
+          <div id="tab-create">
+            <div class="section">
+              <h3>1) Imagen + configuración</h3>
+              <label>
+                Imagen (solo local)
+                <input id="cImage" type="file" accept="image/*" />
+              </label>
+
+              <div class="grid2" style="margin-top:10px;">
+                <label>
+                  Piezas X (2–30)
+                  <input id="cPiecesX" type="number" min="2" max="30" value="8" />
+                </label>
+                <label>
+                  Piezas Y (2–30)
+                  <input id="cPiecesY" type="number" min="2" max="30" value="6" />
+                </label>
+              </div>
+
+              <div class="grid2" style="margin-top:10px;">
+                <label>
+                  Tiempo límite (s)
+                  <input id="cSolveSeconds" type="number" min="10" value="300" />
+                </label>
+                <label>
+                  Reveal al completar (s)
+                  <input id="cRevealSeconds" type="number" min="0" value="6" />
+                </label>
+              </div>
+
+              <div class="grid2" style="margin-top:10px;">
+                <label>
+                  Tema inicial
+                  <select id="cTheme">
+                    <option value="blue">Azul (felt)</option>
+                    <option value="slate">Pizarra</option>
+                    <option value="forest">Bosque</option>
+                  </select>
+                </label>
+                <label style="justify-content:flex-end;">
+                  Mystery mode
+                  <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
+                    <input id="cMystery" type="checkbox" />
+                    <span class="hint">Desactiva “box top”</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="section">
+              <h3>2) Compresión local (JPEG)</h3>
+              <div class="grid2">
+                <label>
+                  Max dimensión (px)
+                  <input id="cMaxDim" type="number" min="256" max="4096" value="1600" />
+                </label>
+                <label>
+                  Calidad (0.5–1.0)
+                  <input id="cQuality" type="number" min="0.5" max="1" step="0.05" value="0.82" />
+                </label>
+              </div>
+              <p class="small">Consejo: 1600px / 0.80–0.85 suele ir bien para compartir y jugar en móvil.</p>
+            </div>
+
+            <div class="section">
+              <h3>3) Contraseña (mín. 8)</h3>
+              <label>
+                Contraseña del reto
+                <input id="cPassword" type="password" minlength="8" placeholder="Mínimo 8 caracteres" />
+              </label>
+              <label style="margin-top:10px;">
+                Título (opcional)
+                <input id="cTitle" type="text" placeholder="Ej: Atardecer en la playa" />
+              </label>
+
+              <div class="row">
+                <button class="btn btnPrimary" id="btnGenerate" type="button" title="Generar .jpuz cifrado">
+                  🔒 Generar y descargar .jpuz
+                </button>
+                <span class="hint" id="createInfo">El archivo incluye config + imagen cifrada.</span>
+              </div>
+            </div>
+
+            <div class="section">
+              <h3>Privacidad práctica (no DRM)</h3>
+              <ul style="padding-left:18px;margin:0;">
+                <li>Todo ocurre en tu navegador. No se sube la imagen a ningún servidor.</li>
+                <li>El archivo <code>.jpuz</code> contiene la imagen comprimida y cifrada (PBKDF2 + AES-GCM).</li>
+                <li><b>Importante:</b> si alguien descifra el reto, puede hacer captura de pantalla. No es posible impedirlo al 100%.</li>
+              </ul>
+              <p class="small">Atajos: <b>B</b> box top · <b>P</b> pausar · <b>T</b> tema · <b>R</b> reencuadrar · <b>Esc</b> cerrar overlays</p>
+            </div>
+          </div>
+
+          <!-- PLAY -->
+          <div id="tab-play" style="display:none;">
+            <div class="section">
+              <h3>1) Cargar reto</h3>
+              <label>
+                Archivo .jpuz (JSON cifrado)
+                <input id="pFile" type="file" accept=".jpuz,application/json" />
+              </label>
+
+              <label style="margin-top:10px;">
+                Contraseña
+                <input id="pPassword" type="password" minlength="8" placeholder="Contraseña del reto" />
+              </label>
+
+              <div class="row">
+                <button class="btn btnPrimary" id="btnPlay" type="button" title="Descifrar y empezar a jugar">
+                  ▶️ Descifrar y jugar
+                </button>
+                <span class="hint" id="playInfo">Nada se envía a ningún servidor.</span>
+              </div>
+            </div>
+
+            <div class="section">
+              <h3>Notas rápidas</h3>
+              <ul style="padding-left:18px;margin:0;">
+                <li>Si el tiempo se agota, se cubre la mesa y no se muestra la imagen.</li>
+                <li>Al completar, se muestra la imagen completa durante el “reveal” configurado.</li>
+                <li>Las conexiones se “bloquean”: una vez encajan, no se separan al arrastrar.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main id="stage">
+        <div id="puzzleWrapper" aria-label="Mesa de trabajo (área amplia)">
+          <div id="targetFrame" aria-hidden="true"></div>
+          <div id="canvasHost" aria-label="Puzzle"></div>
+        </div>
+      </main>
     </div>
   </div>
-  <div class="brand-right">
-    <span class="kbd">B</span><span class="kbd">P</span><span class="kbd">T</span><span class="kbd">R</span><span class="kbd">Esc</span>
+
+  <!-- Overlay -->
+  <div id="overlay" class="hidden" role="dialog" aria-modal="true" aria-labelledby="overlayTitle" aria-describedby="overlayBody">
+    <div id="overlayCard">
+      <div id="overlayHeader">
+        <h2 id="overlayTitle">—</h2>
+        <button id="overlayClose" type="button" title="Cerrar (Esc)">✕</button>
+      </div>
+      <div id="overlayBody"></div>
+      <div id="overlayActions"></div>
+    </div>
   </div>
-</header>
 
-<main class="app">
-  <aside class="panel">
-    <div class="panel-header">
-      <div class="tabs" role="tablist" aria-label="Modo">
-        <button class="tab active" id="tabCreate" role="tab" aria-selected="true">Crear reto</button>
-        <button class="tab" id="tabPlay" role="tab" aria-selected="false">Jugar</button>
-      </div>
-    </div>
-
-    <div class="panel-body">
-      <section id="paneCreate">
-        <div class="section-title">Imagen y reglas</div>
-
-        <div class="filebox">
-          <label for="createImage">Foto (se comprimirá y cifrará en local)</label>
-          <input id="createImage" type="file" accept="image/*" />
-          <div class="filemeta">
-            <span id="createFileName">Ningún archivo seleccionado</span>
-            <span id="createFileSize"></span>
-          </div>
-        </div>
-
-        <div class="row">
-          <div>
-            <label>Piezas X</label>
-            <input id="piecesX" type="number" min="2" max="30" value="6" />
-          </div>
-          <div>
-            <label>Piezas Y</label>
-            <input id="piecesY" type="number" min="2" max="30" value="5" />
-          </div>
-        </div>
-
-        <label>Tiempo límite (seg)</label>
-        <input id="solveSeconds" type="number" min="10" max="7200" value="300" />
-
-        <label>Tiempo de revelado al ganar (seg)</label>
-        <input id="revealSeconds" type="number" min="1" max="600" value="10" />
-
-        <div class="row">
-          <div>
-            <label>Mystery puzzle</label>
-            <select id="mystery">
-              <option value="1" selected>Activado (sin “box top”)</option>
-              <option value="0">Desactivado (permitir “box top”)</option>
-            </select>
-          </div>
-          <div>
-            <label>Fondo inicial</label>
-            <select id="bgTheme">
-              <option value="blue" selected>Azul clásico</option>
-              <option value="slate">Gris pizarra</option>
-              <option value="forest">Verde bosque</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="section-title">Privacidad y tamaño</div>
-
-        <div class="row">
-          <div>
-            <label>Max dimensión imagen (px)</label>
-            <input id="maxDim" type="number" min="600" max="4000" value="1600" />
-          </div>
-          <div>
-            <label>Calidad JPEG</label>
-            <input id="jpegQ" type="number" min="0.5" max="1.0" step="0.05" value="0.9" />
-          </div>
-        </div>
-
-        <label>Contraseña (cifrado del reto)</label>
-        <input id="createPass" type="password" placeholder="mínimo 8 caracteres" />
-
-        <button class="btn btn-primary" id="btnCreate">Generar reto (.jpuz)</button>
-        <a class="download" id="downloadLink">Descargar reto.jpuz</a>
-
-        <div class="hint" style="margin-top:10px">
-          Recomendación: envía el <b>.jpuz</b> y la contraseña por canales distintos.
-        </div>
-      </section>
-
-      <section id="panePlay" style="display:none">
-        <div class="section-title">Cargar reto</div>
-
-        <div class="filebox">
-          <label for="playFile">Archivo .jpuz</label>
-          <input id="playFile" type="file" accept=".jpuz,application/json" />
-          <div class="filemeta">
-            <span id="playFileName">Ningún archivo seleccionado</span>
-            <span id="playFileSize"></span>
-          </div>
-        </div>
-
-        <label>Contraseña</label>
-        <input id="playPass" type="password" />
-
-        <div class="row">
-          <button class="btn btn-primary" id="btnStart">Empezar</button>
-          <button class="btn btn-danger" id="btnReset" type="button">Reiniciar</button>
-        </div>
-
-        <div class="section-title">Atajos</div>
-        <div class="hint">
-          <b>B</b> = box top (si no es mystery) ·
-          <b>P</b> = pausar ·
-          <b>T</b> = tema ·
-          <b>R</b> = reencuadrar piezas ·
-          <b>Esc</b> = cerrar overlays.
-        </div>
-      </section>
-    </div>
-  </aside>
-
-  <section class="stage" id="stage">
-    <div class="toolbar" role="toolbar">
-      <div class="tool-left">
-        <div class="iconbtn" id="btnMenu" title="Mostrar panel lateral">
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="M5 7h14M5 12h14M5 17h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
-        </div>
-
-        <div class="iconbtn" id="btnBoxTop" title="Mostrar box top (B)">
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-9Z" stroke="currentColor" stroke-width="1.6"/>
-            <path d="M8 14l2-2 2.2 2.2L15.5 10 20 14.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M9 9.2h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-          </svg>
-        </div>
-
-        <div class="iconbtn" id="btnPause" title="Pausar/Reanudar (P)">
-          <svg id="pauseIcon" viewBox="0 0 24 24" fill="none">
-            <path d="M7.5 6.5v11M16.5 6.5v11" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
-          </svg>
-          <svg id="playIcon" viewBox="0 0 24 24" fill="none" style="display:none">
-            <path d="M9 7.5v9l8-4.5-8-4.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-          </svg>
-        </div>
-
-        <div class="iconbtn" id="btnTheme" title="Cambiar tema (T)">
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="M12 3.5a8.5 8.5 0 1 0 0 17c1.7 0 2.6-1 2.6-2 0-1.2-.9-2.1-2.1-2.1H11a3 3 0 0 1 0-6h1.6c1.2 0 2.1-.9 2.1-2.1 0-1-.9-2-2.6-2Z" stroke="currentColor" stroke-width="1.6"/>
-            <path d="M7.8 10.2h.01M9.4 7.8h.01M14.6 7.8h.01M16.2 10.2h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-          </svg>
-        </div>
-
-        <div class="iconbtn" id="btnReframe" title="Reencuadrar piezas (R)">
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="M8 7H5v3M16 7h3v3M8 17H5v-3M16 17h3v-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M9 9h6v6H9V9Z" stroke="currentColor" stroke-width="1.6" />
-          </svg>
-        </div>
-
-        <div class="statusline" id="status">Estado: esperando…</div>
-      </div>
-
-      <div class="tool-right">
-        <div class="pill" id="pillPieces">Piezas: —</div>
-        <div class="pill" id="timer">Tiempo: —</div>
-        <div class="iconbtn" id="btnFull" title="Pantalla completa">
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="M9 5H5v4M15 5h4v4M9 19H5v-4M15 19h4v-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-      </div>
-    </div>
-
-    <div class="surface">
-      <div id="workspace">
-        <div id="targetFrame" aria-hidden="true"></div>
-        <div id="puzzle" aria-label="Área del puzzle"></div>
-        <div id="overlay" aria-live="polite"></div>
-        <img id="revealImg" alt="Revelado" />
-      </div>
-    </div>
-  </section>
-</main>
-
-<script>
-  // -------------------------
-  // Tabs
-  // -------------------------
-  const tabCreate = document.getElementById("tabCreate");
-  const tabPlay = document.getElementById("tabPlay");
-  const paneCreate = document.getElementById("paneCreate");
-  const panePlay = document.getElementById("panePlay");
-
-  function showPane(which){
-    const isCreate = which === "create";
-    tabCreate.classList.toggle("active", isCreate);
-    tabPlay.classList.toggle("active", !isCreate);
-    tabCreate.setAttribute("aria-selected", String(isCreate));
-    tabPlay.setAttribute("aria-selected", String(!isCreate));
-    paneCreate.style.display = isCreate ? "block" : "none";
-    panePlay.style.display = isCreate ? "none" : "block";
-  }
-  tabCreate.addEventListener("click", () => showPane("create"));
-  tabPlay.addEventListener("click", () => showPane("play"));
-
-  document.getElementById("btnMenu").addEventListener("click", () => {
-    document.querySelector(".panel").scrollIntoView({ behavior: "smooth", block: "start" });
-  });
-
-  // -------------------------
-  // Helpers
-  // -------------------------
-  function ab2b64(ab) {
-    const bytes = new Uint8Array(ab);
-    let bin = "";
-    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-    return btoa(bin);
-  }
-  function b642ab(b64) {
-    const bin = atob(b64);
-    const bytes = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    return bytes.buffer;
-  }
-  function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
-  function formatMMSS(totalSeconds) {
-    const m = Math.floor(totalSeconds / 60);
-    const s = totalSeconds % 60;
-    return `${m}:${String(s).padStart(2,"0")}`;
-  }
-
-  // -------------------------
-  // WebCrypto
-  // -------------------------
-  const KDF_ITERS = 150000;
-
-  async function deriveKey(pass, salt) {
-    const enc = new TextEncoder();
-    const keyMaterial = await crypto.subtle.importKey(
-      "raw", enc.encode(pass), { name: "PBKDF2" }, false, ["deriveKey"]
-    );
-    return crypto.subtle.deriveKey(
-      { name: "PBKDF2", salt, iterations: KDF_ITERS, hash: "SHA-256" },
-      keyMaterial,
-      { name: "AES-GCM", length: 256 },
-      false,
-      ["encrypt", "decrypt"]
-    );
-  }
-
-  async function encryptPayload(pass, payloadObj) {
-    const salt = crypto.getRandomValues(new Uint8Array(16));
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const key = await deriveKey(pass, salt);
-
-    const enc = new TextEncoder();
-    const plaintext = enc.encode(JSON.stringify(payloadObj));
-    const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plaintext);
-
-    return {
-      v: 1,
-      kdf: "PBKDF2-SHA256",
-      iter: KDF_ITERS,
-      alg: "AES-GCM-256",
-      salt: ab2b64(salt.buffer),
-      iv: ab2b64(iv.buffer),
-      ct: ab2b64(ciphertext)
-    };
-  }
-
-  async function decryptPayload(pass, pkg) {
-    const salt = new Uint8Array(b642ab(pkg.salt));
-    const iv = new Uint8Array(b642ab(pkg.iv));
-    const key = await deriveKey(pass, salt);
-
-    const ct = b642ab(pkg.ct);
-    const plaintext = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ct);
-
-    const dec = new TextDecoder();
-    return JSON.parse(dec.decode(plaintext));
-  }
-
-  // -------------------------
-  // Image processing
-  // -------------------------
-  function loadImageFromFile(file) {
-    return new Promise((resolve, reject) => {
-      const url = URL.createObjectURL(file);
-      const img = new Image();
-      img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
-      img.onerror = () => reject(new Error("No se pudo leer la imagen."));
-      img.src = url;
-    });
-  }
-
-  function canvasToBlob(canvas, type, quality) {
-    return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
-  }
-
-  async function fileToCompressedJpegBytes(file, maxDim, quality) {
-    const img = await loadImageFromFile(file);
-    const w = img.naturalWidth;
-    const h = img.naturalHeight;
-
-    const scale = Math.min(1, maxDim / Math.max(w, h));
-    const tw = Math.max(1, Math.round(w * scale));
-    const th = Math.max(1, Math.round(h * scale));
-
-    const c = document.createElement("canvas");
-    c.width = tw; c.height = th;
-    const ctx = c.getContext("2d", { alpha: false });
-    ctx.drawImage(img, 0, 0, tw, th);
-
-    const blob = await canvasToBlob(c, "image/jpeg", quality);
-    if (!blob) throw new Error("No se pudo comprimir la imagen.");
-    return await blob.arrayBuffer();
-  }
-
-  // -------------------------
-  // UI + game state
-  // -------------------------
-  const statusEl = document.getElementById("status");
-  const timerEl = document.getElementById("timer");
-  const pillPiecesEl = document.getElementById("pillPieces");
-  const overlayEl = document.getElementById("overlay");
-  const revealImgEl = document.getElementById("revealImg");
-  const workspaceEl = document.getElementById("workspace");
-  const targetFrameEl = document.getElementById("targetFrame");
-
-  const pauseBtn = document.getElementById("btnPause");
-  const pauseIcon = document.getElementById("pauseIcon");
-  const playIcon = document.getElementById("playIcon");
-  const boxTopBtn = document.getElementById("btnBoxTop");
-  const themeBtn = document.getElementById("btnTheme");
-  const fullBtn = document.getElementById("btnFull");
-  const reframeBtn = document.getElementById("btnReframe");
-
-  let countdown = null;
-  let solved = false;
-  let paused = false;
-
-  let hb = null;
-  let currentPayload = null;
-  let currentImgSrc = null;
-  let remaining = 0;
-
-  function setStatus(s) { statusEl.textContent = "Estado: " + s; }
-
-  function showOverlay(title, msg){
-    overlayEl.innerHTML = `
-      <div class="box">
-        <h2>${title}</h2>
-        <p>${msg}</p>
-      </div>`;
-    overlayEl.classList.add("active");
-  }
-  function hideOverlay(){
-    overlayEl.classList.remove("active");
-    overlayEl.innerHTML = "";
-  }
-  function stopCountdown(){
-    if (countdown) clearInterval(countdown);
-    countdown = null;
-  }
-
-  function applyTheme(theme){
-    const stageEl = document.getElementById("stage");
-    stageEl.classList.remove("theme-slate", "theme-forest");
-    if (theme === "slate") stageEl.classList.add("theme-slate");
-    if (theme === "forest") stageEl.classList.add("theme-forest");
-  }
-
-  const themeCycle = ["blue","slate","forest"];
-  function cycleTheme(){
-    const idx = themeCycle.indexOf(currentPayload?.bgTheme || "blue");
-    const next = themeCycle[(idx + 1 + themeCycle.length) % themeCycle.length];
-    if (currentPayload) currentPayload.bgTheme = next;
-    applyTheme(next);
-  }
-
-  function hardResetBoard(){
-    solved = false;
-    paused = false;
-    stopCountdown();
-    remaining = 0;
-
-    timerEl.textContent = "Tiempo: —";
-    pillPiecesEl.textContent = "Piezas: —";
-    hideOverlay();
-
-    revealImgEl.classList.remove("active");
-    revealImgEl.src = "";
-    currentImgSrc = null;
-    currentPayload = null;
-
-    targetFrameEl.style.left = "0px";
-    targetFrameEl.style.top = "0px";
-    targetFrameEl.style.width = "0px";
-    targetFrameEl.style.height = "0px";
-
-    document.getElementById("puzzle").innerHTML = "";
-    hb = null;
-
-    pauseIcon.style.display = "block";
-    playIcon.style.display = "none";
-    setStatus("esperando…");
-  }
-
-  document.getElementById("btnReset").addEventListener("click", hardResetBoard);
-
-  // Fullscreen
-  fullBtn.addEventListener("click", async () => {
-    try{
-      if (!document.fullscreenElement) await workspaceEl.requestFullscreen();
-      else await document.exitFullscreen();
-    }catch(e){}
-  });
-
-  // Reframe pieces
-  function reframeAll(){
-    if (!hb) return;
-    try{ hb.reframeWithinDimensions(); } catch(e){}
-  }
-  reframeBtn.addEventListener("click", reframeAll);
-
-  // Pause
-  function setPaused(nextPaused){
-    if (!currentPayload || solved) return;
-    paused = nextPaused;
-
-    if (paused){
-      stopCountdown();
-      showOverlay("Pausado", "Pulsa P para reanudar.");
-      pauseIcon.style.display = "none";
-      playIcon.style.display = "block";
-      setStatus("pausado.");
-    } else {
-      hideOverlay();
-      pauseIcon.style.display = "block";
-      playIcon.style.display = "none";
-      setStatus("en juego…");
-      startCountdownTick();
-    }
-  }
-  pauseBtn.addEventListener("click", () => setPaused(!paused));
-
-  // Box top
-  function showBoxTop(){
-    if (!currentPayload || !currentImgSrc) return;
-    if (currentPayload.mystery){
-      showOverlay("Mystery puzzle", "El “box top” está deshabilitado para este reto.");
-      setTimeout(() => { if (!paused) hideOverlay(); }, 1500);
-      return;
-    }
-    revealImgEl.src = currentImgSrc;
-    revealImgEl.classList.add("active");
-    showOverlay("Box top", "Mostrando la imagen durante 2 segundos…");
-    setTimeout(() => {
-      revealImgEl.classList.remove("active");
-      if (!paused) hideOverlay();
-    }, 2000);
-  }
-  boxTopBtn.addEventListener("click", showBoxTop);
-
-  // Theme
-  themeBtn.addEventListener("click", cycleTheme);
-
-  // Keyboard shortcuts
-  window.addEventListener("keydown", (e) => {
-    const k = e.key.toLowerCase();
-    if (k === "escape") hideOverlay();
-    if (k === "p") setPaused(!paused);
-    if (k === "b") showBoxTop();
-    if (k === "t") cycleTheme();
-    if (k === "r") reframeAll();
-  });
-
-  // -------------------------
-  // File meta UI
-  // -------------------------
-  function fmtBytes(n){
-    if (!n) return "";
-    const units = ["B","KB","MB","GB"];
-    let i = 0;
-    let v = n;
-    while (v >= 1024 && i < units.length-1){ v/=1024; i++; }
-    return `${v.toFixed(i===0?0:1)} ${units[i]}`;
-  }
-  const createImageEl = document.getElementById("createImage");
-  createImageEl.addEventListener("change", () => {
-    const f = createImageEl.files[0];
-    document.getElementById("createFileName").textContent = f ? f.name : "Ningún archivo seleccionado";
-    document.getElementById("createFileSize").textContent = f ? fmtBytes(f.size) : "";
-  });
-  const playFileEl = document.getElementById("playFile");
-  playFileEl.addEventListener("change", () => {
-    const f = playFileEl.files[0];
-    document.getElementById("playFileName").textContent = f ? f.name : "Ningún archivo seleccionado";
-    document.getElementById("playFileSize").textContent = f ? fmtBytes(f.size) : "";
-  });
-
-  // -------------------------
-  // Create challenge
-  // -------------------------
-  document.getElementById("btnCreate").addEventListener("click", async () => {
-    try{
-      if (!crypto?.subtle) throw new Error("WebCrypto no disponible. Abre por HTTPS (GitHub Pages).");
-
-      const file = document.getElementById("createImage").files[0];
-      const x = Number(document.getElementById("piecesX").value);
-      const y = Number(document.getElementById("piecesY").value);
-      const solveSeconds = Number(document.getElementById("solveSeconds").value);
-      const revealSeconds = Number(document.getElementById("revealSeconds").value);
-      const maxDim = Number(document.getElementById("maxDim").value);
-      const jpegQ = Number(document.getElementById("jpegQ").value);
-      const pass = document.getElementById("createPass").value;
-
-      const mystery = document.getElementById("mystery").value === "1";
-      const bgTheme = document.getElementById("bgTheme").value;
-
-      if (!file) throw new Error("Selecciona una foto.");
-      if (!pass || pass.length < 8) throw new Error("Contraseña mínima: 8 caracteres.");
-      if (!(x>=2 && x<=30 && y>=2 && y<=30)) throw new Error("Piezas X/Y fuera de rango.");
-      if (!(solveSeconds>=10 && solveSeconds<=7200)) throw new Error("Tiempo límite fuera de rango.");
-      if (!(revealSeconds>=1 && revealSeconds<=600)) throw new Error("Tiempo de revelado fuera de rango.");
-
-      setStatus("procesando imagen…");
-      const imgBytes = await fileToCompressedJpegBytes(file, maxDim, jpegQ);
-
-      const payload = {
-        mime: "image/jpeg",
-        img: ab2b64(imgBytes),
-        piecesX: x,
-        piecesY: y,
-        solveSeconds,
-        revealSeconds,
-        mystery,
-        bgTheme
+  <div id="toast" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Dependencies (allowed): Konva + Headbreaker -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/konva/9.3.2/konva.min.js"></script>
+  <script src="https://flbulgarelli.github.io/headbreaker/js/headbreaker.js"></script>
+
+  <script>
+    (() => {
+      'use strict';
+
+      // -------------------------
+      // DOM helpers
+      // -------------------------
+      const $ = (sel) => document.querySelector(sel);
+      const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+      const els = {
+        body: document.body,
+        panel: $('#panel'),
+        btnPanel: $('#btnPanel'),
+
+        statusDot: $('#statusDot'),
+        statusText: $('#statusText'),
+        timeDisplay: $('#timeDisplay'),
+
+        btnBoxTop: $('#btnBoxTop'),
+        btnPause: $('#btnPause'),
+        btnTheme: $('#btnTheme'),
+        btnReframe: $('#btnReframe'),
+        btnFullscreen: $('#btnFullscreen'),
+
+        overlay: $('#overlay'),
+        overlayCard: $('#overlayCard'),
+        overlayTitle: $('#overlayTitle'),
+        overlayBody: $('#overlayBody'),
+        overlayActions: $('#overlayActions'),
+        overlayClose: $('#overlayClose'),
+
+        toast: $('#toast'),
+
+        tabs: $$('#tabs .tab'),
+        tabCreate: $('#tab-create'),
+        tabPlay: $('#tab-play'),
+
+        // create
+        cImage: $('#cImage'),
+        cPiecesX: $('#cPiecesX'),
+        cPiecesY: $('#cPiecesY'),
+        cSolveSeconds: $('#cSolveSeconds'),
+        cRevealSeconds: $('#cRevealSeconds'),
+        cMystery: $('#cMystery'),
+        cTheme: $('#cTheme'),
+        cMaxDim: $('#cMaxDim'),
+        cQuality: $('#cQuality'),
+        cPassword: $('#cPassword'),
+        cTitle: $('#cTitle'),
+        btnGenerate: $('#btnGenerate'),
+        createInfo: $('#createInfo'),
+
+        // play
+        pFile: $('#pFile'),
+        pPassword: $('#pPassword'),
+        btnPlay: $('#btnPlay'),
+        playInfo: $('#playInfo'),
+
+        puzzleWrapper: $('#puzzleWrapper'),
+        canvasHost: $('#canvasHost'),
+        secureBadge: $('#secureBadge'),
       };
 
-      setStatus("cifrando…");
-      const pkg = await encryptPayload(pass, payload);
+      // -------------------------
+      // State
+      // -------------------------
+      const THEMES = ['blue', 'slate', 'forest'];
 
-      const blob = new Blob([JSON.stringify(pkg)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
+      /** @type {{
+        state: 'idle'|'playing'|'paused'|'timeout'|'solved'|'finished',
+        canvas: any|null,
+        payload: any|null,
+        imageUrl: string|null,
+        mystery: boolean,
+        timer: { total: number, endAt: number, tickId: number|null, pausedRemaining: number|null },
+        overlay: { kind: 'none'|'modal'|'lock', closable: boolean },
+      }} */
+      const game = {
+        state: 'idle',
+        canvas: null,
+        payload: null,
+        imageUrl: null,
+        mystery: false,
+        timer: { total: 0, endAt: 0, tickId: null, pausedRemaining: null },
+        overlay: { kind: 'none', closable: true },
+      };
 
-      const a = document.getElementById("downloadLink");
-      a.href = url;
-      a.download = "reto.jpuz";
-      a.style.display = "block";
-      a.textContent = "Descargar reto.jpuz";
-
-      setStatus("reto generado. Envía el .jpuz + contraseña.");
-      showPane("play");
-    }catch(e){
-      setStatus("error: " + e.message);
-      showOverlay("Error", e.message);
-    }
-  });
-
-  // -------------------------
-  // Game
-  // -------------------------
-  function startCountdownTick(){
-    stopCountdown();
-    countdown = setInterval(() => {
-      if (!currentPayload || solved || paused) return;
-      remaining -= 1;
-      timerEl.textContent = "Tiempo: " + formatMMSS(Math.max(0, remaining));
-      if (remaining <= 0){
-        stopCountdown();
-        setStatus("fallo por tiempo.");
-        showOverlay("Tiempo agotado", "No se completó el puzzle dentro del límite. Pulsa Reiniciar para reintentar.");
+      // -------------------------
+      // UI: status + toast
+      // -------------------------
+      function setStatus(text, dot = 'neutral') {
+        els.statusText.textContent = text;
+        const color =
+          dot === 'good' ? 'rgba(83,211,138,.95)' :
+          dot === 'warn' ? 'rgba(255,202,92,.95)' :
+          dot === 'bad'  ? 'rgba(255,90,107,.95)' :
+                           'rgba(255,255,255,.45)';
+        els.statusDot.style.background = color;
+        els.statusDot.style.boxShadow =
+          dot === 'good' ? '0 0 0 3px rgba(83,211,138,.16)' :
+          dot === 'warn' ? '0 0 0 3px rgba(255,202,92,.16)' :
+          dot === 'bad'  ? '0 0 0 3px rgba(255,90,107,.16)' :
+                           '0 0 0 3px rgba(255,255,255,.06)';
       }
-    }, 1000);
-  }
 
-  function computePieceSize(workW, workH, piecesX, piecesY){
-    // “zona de montaje” (marco central) ocupa parte de la mesa
-    const targetW = workW * 0.62;
-    const targetH = workH * 0.70;
-    const ps = Math.floor(Math.min(targetW / piecesX, targetH / piecesY));
-    return clamp(ps, 34, 110);
-  }
+      let toastTimer = null;
+      function toast(msg, ms = 2200) {
+        els.toast.textContent = msg;
+        els.toast.classList.add('show');
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => els.toast.classList.remove('show'), ms);
+      }
 
-  async function startGameFromPayload(payload){
-    hardResetBoard();
-    currentPayload = payload;
-    applyTheme(payload.bgTheme || "blue");
+      // -------------------------
+      // Overlay system
+      // -------------------------
+      function showOverlay({ title, bodyHTML, actions = [], closable = true, lock = false }) {
+        game.overlay.kind = lock ? 'lock' : 'modal';
+        game.overlay.closable = !!closable && !lock;
 
-    pillPiecesEl.textContent = `Piezas: ${payload.piecesX * payload.piecesY}`;
-    setStatus("cargando imagen…");
+        els.overlay.classList.remove('hidden');
+        els.overlay.classList.toggle('locked', !!lock);
 
-    const workRect = workspaceEl.getBoundingClientRect();
-    const workW = Math.floor(workRect.width);
-    const workH = Math.floor(workRect.height);
+        els.overlayTitle.textContent = title || '—';
+        els.overlayBody.innerHTML = bodyHTML || '';
 
-    const pieceSize = computePieceSize(workW, workH, payload.piecesX, payload.piecesY);
-
-    // Marco guía (aprox. tamaño final del puzzle)
-    const frameW = Math.round(pieceSize * payload.piecesX);
-    const frameH = Math.round(pieceSize * payload.piecesY);
-    const frameX = Math.round((workW - frameW) / 2);
-    const frameY = Math.round((workH - frameH) / 2);
-
-    targetFrameEl.style.left = `${frameX}px`;
-    targetFrameEl.style.top = `${frameY}px`;
-    targetFrameEl.style.width = `${frameW}px`;
-    targetFrameEl.style.height = `${frameH}px`;
-
-    // Imagen descifrada (IMPORTANTE: set onload antes de src)
-    const img = new Image();
-    currentImgSrc = `data:${payload.mime};base64,${payload.img}`;
-
-    img.onload = () => {
-      try{
-        document.getElementById("puzzle").innerHTML = "";
-
-        hb = new headbreaker.Canvas("puzzle", {
-          width: workW,
-          height: workH,
-          pieceSize,
-          proximity: clamp(Math.round(pieceSize * 0.22), 10, 28),
-          borderFill: Math.round(pieceSize * 0.12),
-          strokeWidth: clamp(Math.round(pieceSize * 0.06), 1, 3),
-          lineSoftness: 0.14,
-          preventOffstageDrag: true,
-          fixed: true,
-          image: img
-        });
-
-        hb.autogenerate({
-          horizontalPiecesCount: payload.piecesX,
-          verticalPiecesCount: payload.piecesY
-        });
-
-        hb.adjustImagesToPuzzleWidth();
-
-        // Clave: una vez conectadas, no se separan
-        if (hb?.puzzle?.forceConnectionWhileDragging) {
-          hb.puzzle.forceConnectionWhileDragging();
+        els.overlayActions.innerHTML = '';
+        for (const a of actions) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'btn ' + (a.kind === 'primary' ? 'btnPrimary' : a.kind === 'danger' ? 'btnDanger' : '');
+          btn.textContent = a.label;
+          btn.addEventListener('click', () => a.onClick?.());
+          els.overlayActions.appendChild(btn);
         }
 
-        // Solved validator + callback en Canvas (no en puzzle)
-        hb.attachSolvedValidator();
-        hb.onValid(() => {
-          if (solved) return;
-          solved = true;
-          stopCountdown();
-          setStatus("resuelto a tiempo. revelando…");
+        els.overlayClose.style.display = game.overlay.closable ? 'inline-flex' : 'none';
+      }
 
-          revealImgEl.src = currentImgSrc;
-          revealImgEl.classList.add("active");
-          showOverlay("Correcto", `Foto completa visible durante ${payload.revealSeconds}s.`);
+      function hideOverlay(force = false) {
+        if (!force && !game.overlay.closable) return;
+        game.overlay.kind = 'none';
+        game.overlay.closable = true;
+        els.overlay.classList.add('hidden');
+        els.overlay.classList.remove('locked');
+        els.overlayTitle.textContent = '—';
+        els.overlayBody.innerHTML = '';
+        els.overlayActions.innerHTML = '';
+      }
 
-          setTimeout(() => {
-            revealImgEl.classList.remove("active");
-            showOverlay("Fin", "Reto completado.");
-            setStatus("finalizado.");
-          }, payload.revealSeconds * 1000);
+      function showError(title, detail) {
+        showOverlay({
+          title: title || 'Ha ocurrido un error',
+          bodyHTML: `
+            <p style="color:rgba(255,255,255,.88);margin-top:0;">${escapeHtml(detail || 'Error desconocido')}</p>
+            <p class="small">Si es un <code>.jpuz</code>, comprueba que el archivo es válido y que la contraseña es correcta.</p>
+          `,
+          actions: [{ label: 'Cerrar', kind: 'primary', onClick: () => hideOverlay(true) }],
+          closable: true,
+          lock: false
         });
+      }
 
-        // Baraja por toda la mesa (espacio amplio)
-        // shuffle(xMax, yMax): reparte las piezas por el área indicada
-        if (hb?.puzzle?.shuffle) {
-          hb.puzzle.shuffle(workW - pieceSize, workH - pieceSize);
+      function showProcessing(label = 'Procesando…') {
+        showOverlay({
+          title: 'Procesando',
+          bodyHTML: `<p><span class="spinner"></span>${escapeHtml(label)}</p><p class="small">Esto ocurre localmente en tu navegador.</p>`,
+          actions: [],
+          closable: false,
+          lock: false
+        });
+      }
+
+      // -------------------------
+      // Security / secure context check
+      // -------------------------
+      function updateSecureContextUI() {
+        const ok = !!window.isSecureContext && !!window.crypto?.subtle;
+        els.secureBadge.style.display = ok ? 'none' : 'inline-flex';
+
+        if (!ok) {
+          const msg = 'WebCrypto requiere HTTPS (por ejemplo GitHub Pages).';
+          setStatus(msg, 'warn');
+          toast(msg, 3500);
+          els.btnGenerate.disabled = true;
+          els.btnPlay.disabled = true;
         } else {
-          hb.shuffle(0.85);
+          els.btnGenerate.disabled = false;
+          els.btnPlay.disabled = false;
+        }
+      }
+
+      // -------------------------
+      // Base64 helpers
+      // -------------------------
+      function bytesToBase64(bytes) {
+        let bin = '';
+        const chunk = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunk) {
+          bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
+        }
+        return btoa(bin);
+      }
+
+      function base64ToBytes(b64) {
+        const bin = atob(b64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return bytes;
+      }
+
+      // -------------------------
+      // Crypto (PBKDF2 + AES-GCM)
+      // -------------------------
+      const KDF_ITER_DEFAULT = 200_000; // razonable hoy, ajustable
+
+      async function deriveAesKey(password, saltBytes, iterations) {
+        const enc = new TextEncoder();
+        const baseKey = await crypto.subtle.importKey(
+          'raw',
+          enc.encode(password),
+          'PBKDF2',
+          false,
+          ['deriveKey']
+        );
+
+        return crypto.subtle.deriveKey(
+          { name: 'PBKDF2', salt: saltBytes, iterations, hash: 'SHA-256' },
+          baseKey,
+          { name: 'AES-GCM', length: 256 },
+          false,
+          ['encrypt', 'decrypt']
+        );
+      }
+
+      async function encryptPayload(password, payloadObj) {
+        const iterations = KDF_ITER_DEFAULT;
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+
+        const key = await deriveAesKey(password, salt, iterations);
+
+        const plaintext = new TextEncoder().encode(JSON.stringify(payloadObj));
+        const ctBuf = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, plaintext);
+
+        return {
+          v: 1,
+          kdf: 'PBKDF2',
+          iter: iterations,
+          salt: bytesToBase64(salt),
+          alg: 'AES-GCM',
+          iv: bytesToBase64(iv),
+          ct: bytesToBase64(new Uint8Array(ctBuf))
+        };
+      }
+
+      async function decryptPayload(password, jpuzObj) {
+        if (!jpuzObj || typeof jpuzObj !== 'object') throw new Error('JSON inválido (objeto esperado).');
+        const required = ['v','kdf','iter','salt','alg','iv','ct'];
+        for (const k of required) {
+          if (!(k in jpuzObj)) throw new Error(`Falta el campo requerido: ${k}`);
+        }
+        if (jpuzObj.kdf !== 'PBKDF2') throw new Error('KDF no soportado (se esperaba PBKDF2).');
+        if (jpuzObj.alg !== 'AES-GCM') throw new Error('Algoritmo no soportado (se esperaba AES-GCM).');
+        if (jpuzObj.v !== 1) throw new Error('Versión de .jpuz no soportada.');
+
+        const iterations = Number(jpuzObj.iter);
+        if (!Number.isFinite(iterations) || iterations < 10_000) throw new Error('Iteraciones PBKDF2 inválidas.');
+
+        const salt = base64ToBytes(jpuzObj.salt);
+        const iv = base64ToBytes(jpuzObj.iv);
+        const ct = base64ToBytes(jpuzObj.ct);
+
+        const key = await deriveAesKey(password, salt, iterations);
+
+        let ptBuf;
+        try {
+          ptBuf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+        } catch (e) {
+          throw new Error('Descifrado fallido. ¿Contraseña incorrecta o archivo corrupto?');
         }
 
-        hb.draw();
-
-        remaining = payload.solveSeconds;
-        timerEl.textContent = "Tiempo: " + formatMMSS(remaining);
-        setStatus("en juego…");
-        startCountdownTick();
-        hideOverlay();
-
-      }catch(err){
-        setStatus("error: " + (err?.message || String(err)));
-        showOverlay("Error (render)", (err?.stack || err?.message || String(err)));
+        const jsonText = new TextDecoder().decode(ptBuf);
+        let payload;
+        try {
+          payload = JSON.parse(jsonText);
+        } catch {
+          throw new Error('El payload descifrado no es JSON válido.');
+        }
+        return payload;
       }
-    };
 
-    img.onerror = () => {
-      setStatus("error: no se pudo cargar la imagen descifrada.");
-      showOverlay("Error", "No se pudo cargar la imagen del reto (dataURL).");
-    };
+      // -------------------------
+      // Image processing (compress -> base64)
+      // -------------------------
+      function clamp(n, a, b) { return Math.min(b, Math.max(a, n)); }
 
-    img.src = currentImgSrc;
-  }
+      async function blobToBase64NoPrefix(blob) {
+        return new Promise((resolve, reject) => {
+          const r = new FileReader();
+          r.onload = () => {
+            const s = String(r.result || '');
+            const idx = s.indexOf(',');
+            resolve(idx >= 0 ? s.slice(idx + 1) : s);
+          };
+          r.onerror = () => reject(new Error('No se pudo leer el blob.'));
+          r.readAsDataURL(blob);
+        });
+      }
 
-  document.getElementById("btnStart").addEventListener("click", async () => {
-    try{
-      if (!crypto?.subtle) throw new Error("WebCrypto no disponible (requiere HTTPS).");
+      async function compressImageToJpegBase64(file, maxDim, quality) {
+        // Yield a frame for UI responsiveness
+        await new Promise(requestAnimationFrame);
 
-      const file = document.getElementById("playFile").files[0];
-      const pass = document.getElementById("playPass").value;
-      if (!file) throw new Error("Selecciona el archivo .jpuz.");
-      if (!pass) throw new Error("Introduce la contraseña.");
+        const bmp = await createImageBitmap(file);
+        const inW = bmp.width;
+        const inH = bmp.height;
 
-      setStatus("descifrando…");
-      showOverlay("Cargando", "Descifrando el reto…");
+        const scale = Math.min(1, maxDim / Math.max(inW, inH));
+        const outW = Math.max(1, Math.round(inW * scale));
+        const outH = Math.max(1, Math.round(inH * scale));
 
-      const pkg = JSON.parse(await file.text());
-      const payload = await decryptPayload(pass, pkg);
+        const canvas = document.createElement('canvas');
+        canvas.width = outW;
+        canvas.height = outH;
 
-      await startGameFromPayload(payload);
-    }catch(e){
-      setStatus("error: " + e.message);
-      showOverlay("Error", e.message);
-    }
-  });
+        const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
+        if (!ctx) throw new Error('No se pudo crear canvas 2D para compresión.');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(bmp, 0, 0, outW, outH);
 
-  // Reframe
-  document.getElementById("btnReframe").addEventListener("click", () => {
-    if (!hb) return;
-    try{ hb.reframeWithinDimensions(); }catch(e){}
-  });
+        const blob = await new Promise((resolve, reject) => {
+          canvas.toBlob((b) => b ? resolve(b) : reject(new Error('Fallo al codificar JPEG.')), 'image/jpeg', quality);
+        });
 
-  // Atajos
-  window.addEventListener("keydown", (e) => {
-    const k = e.key.toLowerCase();
-    if (k === "escape") hideOverlay();
-    if (k === "p") setPaused(!paused);
-    if (k === "b") showBoxTop();
-    if (k === "t") cycleTheme();
-    if (k === "r") reframeAll();
-  });
+        const b64 = await blobToBase64NoPrefix(blob);
+        return { mime: 'image/jpeg', imgBase64: b64, width: outW, height: outH, bytes: blob.size };
+      }
 
-  // Estado inicial
-  hardResetBoard();
-</script>
+      async function loadImageFromDataUrl(dataUrl) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = () => reject(new Error('No se pudo cargar la imagen descifrada.'));
+          img.src = dataUrl;
+        });
+      }
 
+      // -------------------------
+      // Puzzle build (Headbreaker)
+      // -------------------------
+      function computePieceSize(wrapperW, wrapperH, piecesX, piecesY) {
+        // Queremos un marco final ~58% del menor lado para dejar “mesa” alrededor.
+        const targetScale = 0.58;
+        const px = (wrapperW * targetScale) / piecesX;
+        const py = (wrapperH * targetScale) / piecesY;
+        const raw = Math.floor(Math.min(px, py));
+        // permitimos tamaños pequeños si el usuario pone muchas piezas
+        return clamp(raw, 10, 140);
+      }
+
+      function setTargetFrameSize(frameW, frameH) {
+        // centrado por defecto con CSS variables
+        els.puzzleWrapper.style.setProperty('--frameW', `${Math.max(160, Math.floor(frameW))}px`);
+        els.puzzleWrapper.style.setProperty('--frameH', `${Math.max(120, Math.floor(frameH))}px`);
+        els.puzzleWrapper.style.setProperty('--frameLeft', `50%`);
+        els.puzzleWrapper.style.setProperty('--frameTop', `50%`);
+      }
+
+      function ensureHeadbreakerLoaded() {
+        if (!window.headbreaker) throw new Error('No se cargó Headbreaker. Revisa la conexión o el script.');
+        if (!window.Konva) throw new Error('No se cargó Konva. Revisa la conexión o el script.');
+      }
+
+      function destroyCanvasIfAny() {
+        try {
+          if (game.canvas && typeof game.canvas.clear === 'function') {
+            game.canvas.clear();
+          }
+        } catch {}
+        game.canvas = null;
+        els.canvasHost.innerHTML = '';
+      }
+
+      async function buildPuzzleFromPayload(payload) {
+        ensureHeadbreakerLoaded();
+        destroyCanvasIfAny();
+
+        // Basic payload validation
+        const required = ['mime','img','piecesX','piecesY','solveSeconds','revealSeconds','mystery','bgTheme'];
+        for (const k of required) {
+          if (!(k in payload)) throw new Error(`Payload incompleto: falta ${k}`);
+        }
+
+        const piecesX = clamp(Number(payload.piecesX), 2, 30);
+        const piecesY = clamp(Number(payload.piecesY), 2, 30);
+
+        const solveSeconds = Math.max(1, Math.floor(Number(payload.solveSeconds)));
+        const revealSeconds = Math.max(0, Math.floor(Number(payload.revealSeconds)));
+
+        const theme = String(payload.bgTheme || 'blue');
+        if (THEMES.includes(theme)) setTheme(theme);
+
+        const dataUrl = `data:${payload.mime};base64,${payload.img}`;
+        game.imageUrl = dataUrl;
+        game.mystery = !!payload.mystery;
+
+        // Load image
+        const img = await loadImageFromDataUrl(dataUrl);
+
+        // Dimensions
+        const w = els.puzzleWrapper.clientWidth;
+        const h = els.puzzleWrapper.clientHeight;
+
+        const pieceSize = computePieceSize(w, h, piecesX, piecesY);
+        const proximity = Math.max(8, Math.round(pieceSize * 0.16));
+        const borderFill = Math.max(0, Math.round(pieceSize * 0.11));
+        const strokeWidth = 1;
+        const lineSoftness = 0.18;
+
+        if (pieceSize <= 14) {
+          toast('Aviso: muchas piezas → piezas pequeñas. Considera bajar X/Y para una experiencia más cómoda.', 4200);
+        }
+
+        // Create Canvas
+        const canvas = new headbreaker.Canvas('canvasHost', {
+          width: w,
+          height: h,
+          pieceSize,
+          proximity,
+          borderFill,
+          strokeWidth,
+          strokeColor: 'rgba(0,0,0,0.30)',
+          lineSoftness,
+          preventOffstageDrag: false,   // mesa amplia; “Reencuadrar” rescata si se pierden
+          fixed: true,
+          image: img,
+          maxPiecesCount: { x: piecesX, y: piecesY }
+        });
+
+        // Adjust image to cover the puzzle area (minimize empty areas)
+        const puzzleAspect = piecesX / piecesY;
+        const imageAspect = img.naturalWidth / img.naturalHeight;
+        if (imageAspect > puzzleAspect) canvas.adjustImagesToPuzzleHeight(); else canvas.adjustImagesToPuzzleWidth();
+
+        // Generate puzzle pieces
+        canvas.autogenerate({ horizontalPiecesCount: piecesX, verticalPiecesCount: piecesY });
+
+        // Lock connections while dragging (FR-3)
+        canvas.puzzle.forceConnectionWhileDragging();
+
+        // Solved validator
+        canvas.attachSolvedValidator();
+        canvas.onValid(() => {
+          if (game.state === 'playing') onSolved();
+        });
+
+        // Shuffle into the workbench (FR-4)
+        // grid shuffle => menos solape, más “orden jugable”
+        canvas.shuffleGrid(0.92);
+
+        // Draw
+        canvas.draw();
+
+        // Target frame guide (FR-4) — tamaño estimado del puzzle
+        const frameW = canvas.puzzleDiameter?.x || (pieceSize * piecesX);
+        const frameH = canvas.puzzleDiameter?.y || (pieceSize * piecesY);
+        setTargetFrameSize(frameW, frameH);
+
+        game.canvas = canvas;
+
+        // Save runtime config
+        game.payload = {
+          ...payload,
+          piecesX,
+          piecesY,
+          solveSeconds,
+          revealSeconds,
+          bgTheme: theme,
+          mystery: !!payload.mystery
+        };
+
+        // Update control availability
+        updateControlsAvailability();
+
+        // Start playing
+        startGameTimer(solveSeconds);
+        game.state = 'playing';
+        setStatus('En juego… Arrastra piezas y encájalas.', 'good');
+        els.btnPause.innerHTML = '⏸️ <span class="k">P</span>';
+
+        // Small hint
+        toast(game.mystery ? 'Mystery mode: sin box top.' : 'Tip: “Box top” para ver la imagen (B).');
+      }
+
+      // -------------------------
+      // Timer
+      // -------------------------
+      function formatMMSS(totalSeconds) {
+        const s = Math.max(0, Math.floor(totalSeconds));
+        const mm = String(Math.floor(s / 60)).padStart(2,'0');
+        const ss = String(s % 60).padStart(2,'0');
+        return `${mm}:${ss}`;
+      }
+
+      function stopTimer() {
+        if (game.timer.tickId) clearInterval(game.timer.tickId);
+        game.timer.tickId = null;
+        game.timer.pausedRemaining = null;
+        game.timer.total = 0;
+        game.timer.endAt = 0;
+      }
+
+      function getRemainingSeconds() {
+        if (game.state !== 'playing' && game.state !== 'paused') return 0;
+        if (game.state === 'paused' && game.timer.pausedRemaining != null) {
+          return Math.ceil(game.timer.pausedRemaining / 1000);
+        }
+        const ms = game.timer.endAt - performance.now();
+        return Math.ceil(ms / 1000);
+      }
+
+      function updateTimerUI() {
+        if (game.state === 'idle') {
+          els.timeDisplay.textContent = '--:--';
+          return;
+        }
+        const remain = getRemainingSeconds();
+        els.timeDisplay.textContent = formatMMSS(remain);
+      }
+
+      function startGameTimer(seconds) {
+        stopTimer();
+        game.timer.total = seconds;
+        game.timer.endAt = performance.now() + seconds * 1000;
+
+        updateTimerUI();
+
+        game.timer.tickId = setInterval(() => {
+          if (game.state !== 'playing') return;
+          const remain = getRemainingSeconds();
+          updateTimerUI();
+          if (remain <= 0) onTimeout();
+        }, 250);
+      }
+
+      // -------------------------
+      // Game state transitions
+      // -------------------------
+      function updateControlsAvailability() {
+        const active = (game.state === 'playing' || game.state === 'paused');
+        const canBoxTop = active && !game.mystery && (game.state !== 'timeout') && (game.state !== 'finished') && (game.state !== 'solved');
+
+        els.btnBoxTop.disabled = !canBoxTop;
+        els.btnPause.disabled = !active;
+        els.btnReframe.disabled = !active;
+      }
+
+      function onTimeout() {
+        if (game.state !== 'playing') return;
+        game.state = 'timeout';
+        stopTimer();
+        updateTimerUI();
+        updateControlsAvailability();
+        setStatus('Tiempo agotado.', 'bad');
+
+        showOverlay({
+          title: '⏱️ Tiempo agotado',
+          bodyHTML: `
+            <p>El tiempo para resolver se ha agotado.</p>
+            <p class="small">Por requisito, no se muestra la imagen tras agotar el tiempo. Puedes reiniciar para intentarlo de nuevo.</p>
+          `,
+          actions: [
+            { label: 'Reiniciar', kind: 'primary', onClick: () => restartSameChallenge() },
+            { label: 'Cerrar', kind: 'danger', onClick: () => { /* no permitido */ } }
+          ],
+          closable: false,
+          lock: true
+        });
+      }
+
+      function onSolved() {
+        if (game.state !== 'playing') return;
+        game.state = 'solved';
+        stopTimer();
+        updateTimerUI();
+        updateControlsAvailability();
+        setStatus('¡Resuelto! Revelando…', 'good');
+
+        const revealSeconds = Math.max(0, Math.floor(Number(game.payload?.revealSeconds || 0)));
+        const title = String(game.payload?.title || 'Reto completado');
+
+        const img = game.imageUrl
+          ? `<img alt="Imagen completa (reveal)" src="${escapeAttr(game.imageUrl)}" style="width:100%;max-height:56vh;object-fit:contain;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.20);" />`
+          : '';
+
+        showOverlay({
+          title: `🏁 ${escapeHtml(title)}`,
+          bodyHTML: `
+            <p>¡Enhorabuena! Se muestra la imagen completa durante <b>${revealSeconds}</b> segundo(s).</p>
+            ${img}
+            <p class="small">Recuerda: una vez descifrado, un usuario puede hacer captura de pantalla. No es evitable al 100%.</p>
+          `,
+          actions: [],
+          closable: false,
+          lock: false
+        });
+
+        if (revealSeconds === 0) {
+          setTimeout(() => endAfterReveal(), 0);
+        } else {
+          setTimeout(() => endAfterReveal(), revealSeconds * 1000);
+        }
+      }
+
+      function endAfterReveal() {
+        game.state = 'finished';
+        updateControlsAvailability();
+        setStatus('Fin.', 'warn');
+
+        showOverlay({
+          title: '✅ Fin',
+          bodyHTML: `
+            <p>El “reveal” ha terminado.</p>
+            <p class="small">Puedes reiniciar para jugar otra vez (misma contraseña y reto en memoria), o cargar otro .jpuz.</p>
+          `,
+          actions: [
+            { label: 'Jugar de nuevo', kind: 'primary', onClick: () => restartSameChallenge() },
+            { label: 'Cerrar', kind: 'danger', onClick: () => hideOverlay(true) }
+          ],
+          closable: false,
+          lock: true
+        });
+      }
+
+      function togglePause() {
+        if (game.state === 'playing') {
+          // Pause
+          game.state = 'paused';
+          const msRemain = game.timer.endAt - performance.now();
+          game.timer.pausedRemaining = Math.max(0, msRemain);
+          updateTimerUI();
+          updateControlsAvailability();
+          setStatus('Pausado.', 'warn');
+          els.btnPause.innerHTML = '▶️ <span class="k">P</span>';
+
+          showOverlay({
+            title: '⏸️ Pausado',
+            bodyHTML: `
+              <p>El temporizador está detenido.</p>
+              <p class="small">Pulsa <b>P</b> para reanudar o cierra este overlay.</p>
+            `,
+            actions: [
+              { label: 'Reanudar', kind: 'primary', onClick: () => togglePause() }
+            ],
+            closable: true,
+            lock: false
+          });
+
+        } else if (game.state === 'paused') {
+          // Resume
+          hideOverlay(true);
+          game.state = 'playing';
+          const ms = game.timer.pausedRemaining ?? 0;
+          game.timer.endAt = performance.now() + ms;
+          game.timer.pausedRemaining = null;
+          updateTimerUI();
+          updateControlsAvailability();
+          setStatus('En juego…', 'good');
+          els.btnPause.innerHTML = '⏸️ <span class="k">P</span>';
+        }
+      }
+
+      function reframePieces() {
+        try {
+          if (!game.canvas) return;
+          // For fixed canvas, this brings pieces back into view
+          game.canvas.reframeWithinDimensions();
+          game.canvas.redraw();
+          toast('Reencuadrado ✅');
+        } catch (e) {
+          toast('No se pudo reencuadrar (¿canvas no fijo?)');
+        }
+      }
+
+      function toggleBoxTop() {
+        if (els.btnBoxTop.disabled) return;
+        if (!game.imageUrl) return;
+
+        showOverlay({
+          title: '🖼️ Box top',
+          bodyHTML: `
+            <p class="small" style="margin-top:0;">Vista previa (no disponible en Mystery mode).</p>
+            <img alt="Vista previa" src="${escapeAttr(game.imageUrl)}" style="width:100%;max-height:62vh;object-fit:contain;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.20);" />
+          `,
+          actions: [{ label: 'Cerrar', kind: 'primary', onClick: () => hideOverlay(true) }],
+          closable: true,
+          lock: false
+        });
+      }
+
+      async function restartSameChallenge() {
+        hideOverlay(true);
+        if (!game.payload) {
+          setStatus('No hay reto cargado en memoria. Carga un .jpuz.', 'warn');
+          return;
+        }
+        showProcessing('Reiniciando puzzle…');
+        await new Promise(requestAnimationFrame);
+        try {
+          const payload = { ...game.payload };
+          await buildPuzzleFromPayload(payload);
+          hideOverlay(true);
+        } catch (e) {
+          hideOverlay(true);
+          showError('No se pudo reiniciar', String(e?.message || e));
+        }
+      }
+
+      // -------------------------
+      // Theme + fullscreen
+      // -------------------------
+      function setTheme(theme) {
+        const t = THEMES.includes(theme) ? theme : 'blue';
+        els.body.setAttribute('data-theme', t);
+        if (game.payload) game.payload.bgTheme = t;
+      }
+
+      function cycleTheme() {
+        const current = els.body.getAttribute('data-theme') || 'blue';
+        const idx = THEMES.indexOf(current);
+        const next = THEMES[(idx + 1 + THEMES.length) % THEMES.length];
+        setTheme(next);
+        toast(`Tema: ${next}`);
+      }
+
+      async function toggleFullscreen() {
+        const el = els.puzzleWrapper;
+        if (!document.fullscreenElement) {
+          try {
+            await el.requestFullscreen();
+            toast('Pantalla completa');
+          } catch {
+            toast('No se pudo activar pantalla completa');
+          }
+        } else {
+          try {
+            await document.exitFullscreen();
+          } catch {}
+        }
+      }
+
+      // -------------------------
+      // Tabs
+      // -------------------------
+      function setTab(name) {
+        els.tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+        els.tabCreate.style.display = (name === 'create') ? '' : 'none';
+        els.tabPlay.style.display = (name === 'play') ? '' : 'none';
+      }
+
+      // -------------------------
+      // Create flow
+      // -------------------------
+      function readNum(input, fallback, min, max) {
+        const n = Number(input.value);
+        if (!Number.isFinite(n)) return fallback;
+        return clamp(n, min, max);
+      }
+
+      async function handleGenerate() {
+        try {
+          updateSecureContextUI();
+          if (!window.isSecureContext || !crypto?.subtle) {
+            showError('HTTPS requerido', 'WebCrypto (PBKDF2/AES-GCM) requiere contexto seguro. Usa GitHub Pages (HTTPS).');
+            return;
+          }
+
+          const file = els.cImage.files?.[0];
+          if (!file) {
+            showError('Falta imagen', 'Selecciona una imagen para crear el reto.');
+            return;
+          }
+
+          const piecesX = readNum(els.cPiecesX, 8, 2, 30);
+          const piecesY = readNum(els.cPiecesY, 6, 2, 30);
+          const solveSeconds = Math.max(1, Math.floor(readNum(els.cSolveSeconds, 300, 1, 999999)));
+          const revealSeconds = Math.max(0, Math.floor(readNum(els.cRevealSeconds, 6, 0, 999999)));
+          const mystery = !!els.cMystery.checked;
+          const bgTheme = String(els.cTheme.value || 'blue');
+
+          const maxDim = Math.floor(readNum(els.cMaxDim, 1600, 256, 4096));
+          const quality = Math.round(readNum(els.cQuality, 0.82, 0.5, 1.0) * 100) / 100;
+
+          const password = String(els.cPassword.value || '');
+          if (password.length < 8) {
+            showError('Contraseña demasiado corta', 'La contraseña debe tener mínimo 8 caracteres.');
+            return;
+          }
+
+          const title = String(els.cTitle.value || '').trim();
+
+          showProcessing('Comprimiendo imagen y cifrando…');
+          await new Promise(requestAnimationFrame);
+
+          const comp = await compressImageToJpegBase64(file, maxDim, quality);
+
+          const payload = {
+            v: 1,
+            mime: comp.mime,
+            img: comp.imgBase64,
+
+            piecesX,
+            piecesY,
+            solveSeconds,
+            revealSeconds,
+            mystery,
+            bgTheme,
+
+            createdAt: new Date().toISOString(),
+            title: title || undefined,
+            compression: { maxDim, quality }
+          };
+
+          const jpuz = await encryptPayload(password, payload);
+
+          const pretty = JSON.stringify(jpuz, null, 2);
+          const blob = new Blob([pretty], { type: 'application/json' });
+
+          const fileNameBase = title ? safeFilename(title) : 'reto';
+          const fileName = `${fileNameBase}.jpuz`;
+
+          downloadBlob(blob, fileName);
+
+          hideOverlay(true);
+          setStatus('Reto creado. Comparte el .jpuz + contraseña por separado.', 'good');
+          toast('Descarga iniciada ✅');
+
+          showOverlay({
+            title: '✅ Reto generado',
+            bodyHTML: `
+              <p>Se ha descargado <code>${escapeHtml(fileName)}</code>.</p>
+              <p class="small">
+                Tamaño imagen comprimida: <b>${formatBytes(comp.bytes)}</b> · ${comp.width}×${comp.height} · JPEG q=${quality}
+              </p>
+              <p class="small"><b>Flujo recomendado:</b> comparte el archivo <code>.jpuz</code> y la contraseña por un canal distinto.</p>
+            `,
+            actions: [
+              { label: 'Cerrar', kind: 'primary', onClick: () => hideOverlay(true) }
+            ],
+            closable: true,
+            lock: false
+          });
+
+        } catch (e) {
+          hideOverlay(true);
+          showError('No se pudo generar el reto', String(e?.message || e));
+        }
+      }
+
+      function downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+      }
+
+      function formatBytes(bytes) {
+        const b = Number(bytes);
+        if (!Number.isFinite(b)) return '—';
+        const units = ['B','KB','MB','GB'];
+        let i = 0, v = b;
+        while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
+        return `${v.toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
+      }
+
+      function safeFilename(s) {
+        return s
+          .toLowerCase()
+          .replace(/[^\p{L}\p{N}]+/gu, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '')
+          .slice(0, 48) || 'reto';
+      }
+
+      // -------------------------
+      // Play flow
+      // -------------------------
+      async function handlePlay() {
+        try {
+          updateSecureContextUI();
+          if (!window.isSecureContext || !crypto?.subtle) {
+            showError('HTTPS requerido', 'WebCrypto (PBKDF2/AES-GCM) requiere contexto seguro. Usa GitHub Pages (HTTPS).');
+            return;
+          }
+
+          const file = els.pFile.files?.[0];
+          if (!file) {
+            showError('Falta .jpuz', 'Selecciona un archivo .jpuz.');
+            return;
+          }
+
+          const password = String(els.pPassword.value || '');
+          if (password.length < 8) {
+            showError('Contraseña inválida', 'La contraseña debe tener mínimo 8 caracteres.');
+            return;
+          }
+
+          showProcessing('Leyendo .jpuz y descifrando…');
+          await new Promise(requestAnimationFrame);
+
+          const text = await file.text();
+          let jpuzObj;
+          try {
+            jpuzObj = JSON.parse(text);
+          } catch {
+            throw new Error('El archivo no es JSON válido.');
+          }
+
+          const payload = await decryptPayload(password, jpuzObj);
+
+          // Start
+          await buildPuzzleFromPayload(payload);
+
+          hideOverlay(true);
+
+        } catch (e) {
+          hideOverlay(true);
+          showError('No se pudo iniciar el reto', String(e?.message || e));
+        }
+      }
+
+      // -------------------------
+      // Panel toggle
+      // -------------------------
+      function togglePanel() {
+        const visible = els.panel.style.display !== 'none';
+        els.panel.style.display = visible ? 'none' : '';
+        toast(visible ? 'Panel oculto' : 'Panel visible');
+        // resize canvas if active
+        setTimeout(() => resizeCanvasToWrapper(), 50);
+      }
+
+      function resizeCanvasToWrapper() {
+        if (!game.canvas) return;
+        const w = els.puzzleWrapper.clientWidth;
+        const h = els.puzzleWrapper.clientHeight;
+        try {
+          game.canvas.resize(w, h);
+          // frame stays same size; just re-center (CSS already)
+          game.canvas.redraw();
+        } catch {}
+      }
+
+      // -------------------------
+      // Keyboard shortcuts
+      // -------------------------
+      document.addEventListener('keydown', (e) => {
+        const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+        if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+
+        if (e.key === 'Escape') {
+          if (game.overlay.kind !== 'none') hideOverlay(false);
+          return;
+        }
+
+        if (e.key === 'b' || e.key === 'B') toggleBoxTop();
+        if (e.key === 'p' || e.key === 'P') togglePause();
+        if (e.key === 't' || e.key === 'T') cycleTheme();
+        if (e.key === 'r' || e.key === 'R') reframePieces();
+      });
+
+      // -------------------------
+      // Bind UI events
+      // -------------------------
+      els.tabs.forEach(btn => btn.addEventListener('click', () => setTab(btn.dataset.tab)));
+
+      els.btnGenerate.addEventListener('click', handleGenerate);
+      els.btnPlay.addEventListener('click', handlePlay);
+
+      els.btnPanel.addEventListener('click', togglePanel);
+      els.btnTheme.addEventListener('click', cycleTheme);
+      els.btnReframe.addEventListener('click', reframePieces);
+      els.btnPause.addEventListener('click', togglePause);
+      els.btnBoxTop.addEventListener('click', toggleBoxTop);
+      els.btnFullscreen.addEventListener('click', toggleFullscreen);
+
+      els.overlayClose.addEventListener('click', () => hideOverlay(false));
+      els.overlay.addEventListener('click', (e) => {
+        // click on backdrop closes only if closable
+        if (e.target === els.overlay) hideOverlay(false);
+      });
+
+      // Keep create-info updated
+      function refreshCreateInfo() {
+        const x = readNum(els.cPiecesX, 8, 2, 30);
+        const y = readNum(els.cPiecesY, 6, 2, 30);
+        const total = x * y;
+        els.createInfo.textContent = `${x}×${y} = ${total} piezas · cifrado AES‑GCM`;
+      }
+      ['input','change'].forEach(ev => {
+        els.cPiecesX.addEventListener(ev, refreshCreateInfo);
+        els.cPiecesY.addEventListener(ev, refreshCreateInfo);
+      });
+      refreshCreateInfo();
+
+      // Clamp inputs on blur for nicer UX
+      function clampInput(el, min, max, fallback) {
+        const n = Number(el.value);
+        el.value = String(Number.isFinite(n) ? clamp(n, min, max) : fallback);
+      }
+      els.cPiecesX.addEventListener('blur', () => clampInput(els.cPiecesX, 2, 30, 8));
+      els.cPiecesY.addEventListener('blur', () => clampInput(els.cPiecesY, 2, 30, 6));
+      els.cQuality.addEventListener('blur', () => clampInput(els.cQuality, 0.5, 1.0, 0.82));
+      els.cMaxDim.addEventListener('blur', () => clampInput(els.cMaxDim, 256, 4096, 1600));
+
+      // Resize handling
+      let resizeT = null;
+      window.addEventListener('resize', () => {
+        if (resizeT) clearTimeout(resizeT);
+        resizeT = setTimeout(() => resizeCanvasToWrapper(), 120);
+      });
+
+      // -------------------------
+      // Utilities: HTML escape
+      // -------------------------
+      function escapeHtml(s) {
+        return String(s)
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#039;');
+      }
+      function escapeAttr(s) {
+        return escapeHtml(s).replaceAll('`','&#096;');
+      }
+
+      // -------------------------
+      // Init
+      // -------------------------
+      updateSecureContextUI();
+      updateControlsAvailability();
+      updateTimerUI();
+
+      // If user opens as file://, warn
+      if (!window.isSecureContext) {
+        showOverlay({
+          title: 'HTTPS requerido',
+          bodyHTML: `
+            <p>Este juego usa <b>WebCrypto</b> (PBKDF2 + AES‑GCM) para cifrar/descifrar retos.</p>
+            <p>WebCrypto requiere un <b>contexto seguro</b>, normalmente <b>HTTPS</b> (por ejemplo, GitHub Pages).</p>
+            <p class="small">Por eso, abrir <code>index.html</code> con <code>file://</code> puede no funcionar.</p>
+          `,
+          actions: [{ label: 'Entendido', kind: 'primary', onClick: () => hideOverlay(true) }],
+          closable: true,
+          lock: false
+        });
+      }
+
+      // Default disabled while idle
+      els.btnPause.disabled = true;
+      els.btnReframe.disabled = true;
+      els.btnBoxTop.disabled = true;
+
+      // Expose small debug (optional)
+      // window.__JPuz = { game };
+
+    })();
+  </script>
 </body>
 </html>
 
