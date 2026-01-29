@@ -676,810 +676,1297 @@
     // -----------------------------
     function bytesToB64(bytes){
       let bin = "";
-      const chunk = 0x8000;
-      for (let i=0; i<bytes.length; i+=chunk){
-        bin += String.fromCharCode(...bytes.subarray(i, i+chunk));
+      const chunk = 0x8000;<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>JPUZ — Crear y Jugar (100% local)</title>
+  <style>
+    :root{
+      --bg0:#0b1220; --bg1:#0f1a2e;
+      --card: rgba(255,255,255,.06);
+      --text:#eaf0ff;
+      --muted: rgba(234,240,255,.75);
+      --muted2: rgba(234,240,255,.55);
+      --line: rgba(255,255,255,.12);
+      --accent:#7dd3fc; --accent2:#a78bfa;
+      --danger:#fb7185; --ok:#34d399; --warn:#fbbf24;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+      --btn: rgba(255,255,255,.10);
+      --btnh: rgba(255,255,255,.16);
+      --btnp: rgba(255,255,255,.22);
+      --focus: 0 0 0 3px rgba(125,211,252,.28);
+    }
+
+    body{
+      margin:0; color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(125,211,252,.12), transparent 60%),
+        radial-gradient(900px 700px at 85% 25%, rgba(167,139,250,.10), transparent 55%),
+        radial-gradient(1200px 900px at 45% 100%, rgba(52,211,153,.08), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      height:100vh;
+      overflow:hidden;
+    }
+
+    body.theme-blue{ --bg0:#081427; --bg1:#0b1c39; --accent:#60a5fa; --accent2:#22d3ee; }
+    body.theme-chalk{ --bg0:#0b0f14; --bg1:#0f1720; --accent:#a3e635; --accent2:#fbbf24; }
+    body.theme-forest{ --bg0:#071412; --bg1:#0a1b16; --accent:#34d399; --accent2:#22c55e; }
+
+    .app{ display:flex; flex-direction:column; height:100vh; }
+
+    header{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 16px;
+      border-bottom:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      backdrop-filter: blur(10px);
+    }
+    .brand{ display:flex; gap:12px; align-items:center; }
+    .logo{
+      width:36px; height:36px; border-radius:12px;
+      background: conic-gradient(from 210deg, var(--accent), var(--accent2), rgba(255,255,255,.10));
+      box-shadow: var(--shadow);
+    }
+    .brand h1{ margin:0; font-size:14px; letter-spacing:.4px; }
+    .brand .sub{ display:block; margin-top:2px; font-size:12px; color:var(--muted2); }
+
+    .tabs{
+      display:flex; gap:8px;
+      background: rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      padding:4px; border-radius:999px;
+    }
+    .tab{
+      appearance:none; border:0; background:transparent;
+      color:var(--muted);
+      padding:8px 12px; border-radius:999px;
+      cursor:pointer; font-weight:600; font-size:13px;
+    }
+    .tab[aria-selected="true"]{ background: rgba(255,255,255,.12); color:var(--text); }
+
+    .main{ display:flex; gap:12px; padding:12px; flex:1; min-height:0; }
+
+    .panel{
+      width:380px; max-width:42vw; min-width:320px;
+      background: var(--card);
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:auto;
+    }
+    .panel-inner{ padding:14px; }
+    .panel h2{ margin:0 0 8px; font-size:14px; letter-spacing:.3px; }
+    .hint{ font-size:12px; color:var(--muted2); line-height:1.35; }
+    .hr{ height:1px; background:var(--line); margin:12px 0; }
+
+    .grid{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    label{ display:block; font-size:12px; color:var(--muted); margin:0 0 6px; }
+    input[type="text"], input[type="password"], input[type="number"], select{
+      width:100%; padding:10px 10px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background: rgba(10,16,28,.55);
+      color:var(--text);
+      outline:none;
+      box-sizing:border-box;
+    }
+    input:focus, select:focus{ box-shadow: var(--focus); border-color: rgba(125,211,252,.35); }
+    input[type="file"]{ width:100%; color:var(--muted); }
+
+    .check{
+      display:flex; gap:10px; align-items:flex-start;
+      padding:10px; border-radius:12px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+    }
+    .check input{ margin-top:2px; }
+    .check b{ font-size:12px; display:block; }
+    .check span{ font-size:12px; color:var(--muted2); display:block; margin-top:2px; line-height:1.35; }
+
+    .btns{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    button.btn{
+      appearance:none; border:1px solid var(--line);
+      background: var(--btn);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:700;
+      font-size:13px;
+      display:inline-flex; align-items:center; justify-content:center;
+      gap:8px;
+      user-select:none;
+    }
+    button.btn:hover{ background: var(--btnh); }
+    button.btn:active{ background: var(--btnp); transform: translateY(1px); }
+    button.btn:disabled{ opacity:.5; cursor:not-allowed; }
+    .btn.primary{ border-color: rgba(125,211,252,.35); }
+
+    .pill{
+      display:inline-flex; padding:4px 8px; border-radius:999px;
+      border:1px solid var(--line); background: rgba(255,255,255,.06);
+      font-size:12px; color:var(--muted);
+      margin-left:8px;
+    }
+
+    .stage{
+      flex:1; min-width:0;
+      border-radius: var(--radius);
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      box-shadow: var(--shadow);
+      display:flex; flex-direction:column;
+      overflow:hidden; position:relative;
+    }
+
+    .playerbar{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:10px 12px;
+      border-bottom:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      backdrop-filter: blur(10px);
+    }
+
+    .status{ display:flex; gap:10px; align-items:center; min-width:0; }
+    .status .dot{
+      width:10px; height:10px; border-radius:99px; background: var(--accent);
+      box-shadow: 0 0 0 3px rgba(125,211,252,.12);
+      flex:0 0 auto;
+    }
+    .status .txt{
+      font-weight:800; font-size:13px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .status .subtxt{
+      display:block; font-weight:600; font-size:12px; color:var(--muted2);
+      margin-top:1px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+
+    .timer{
+      font-variant-numeric: tabular-nums;
+      font-weight:900; letter-spacing:.5px;
+      background: rgba(255,255,255,.07);
+      border:1px solid var(--line);
+      padding:8px 10px;
+      border-radius:12px;
+      min-width:110px; text-align:center;
+    }
+
+    .controls{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .iconbtn{
+      appearance:none;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.08);
+      color:var(--text);
+      padding:8px 10px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:800; font-size:12px;
+      display:inline-flex; align-items:center; justify-content:center;
+      user-select:none;
+      white-space:nowrap;
+    }
+    .iconbtn:hover{ background: rgba(255,255,255,.12); }
+    .iconbtn:active{ transform: translateY(1px); }
+    .iconbtn:disabled{ opacity:.5; cursor:not-allowed; }
+
+    .canvasWrap{ position:relative; flex:1; min-height:0; touch-action:none; }
+    #puzzleCanvas{ width:100%; height:100%; }
+    .hudNote{
+      position:absolute; left:12px; bottom:12px;
+      background: rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.12);
+      padding:8px 10px;
+      border-radius:12px;
+      font-size:12px; color:var(--muted);
+      backdrop-filter: blur(8px);
+      max-width:min(520px, 92%);
+      pointer-events:none;
+    }
+
+    .overlay{
+      position:fixed; inset:0;
+      display:none;
+      align-items:center; justify-content:center;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(10px);
+      z-index:9999;
+      padding:18px;
+    }
+    .overlay[aria-hidden="false"]{ display:flex; }
+    .modal{
+      width:min(720px, 96vw);
+      max-height: min(86vh, 900px);
+      overflow:auto;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(12,18,30,.90);
+      box-shadow: 0 30px 80px rgba(0,0,0,.55);
+    }
+    .modalHead{
+      padding:14px 14px 10px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+    }
+    .modalHead h3{ margin:0; font-size:14px; letter-spacing:.3px; }
+    .modalHead .x{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.08);
+      border-radius:12px;
+      padding:8px 10px;
+      cursor:pointer;
+      font-weight:900;
+      color:var(--text);
+    }
+    .modalBody{ padding:14px; }
+    .modalBody p, .modalBody li{ color:var(--muted); font-size:13px; line-height:1.45; }
+    .modalBody code{
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.10);
+      padding:2px 6px;
+      border-radius:8px;
+    }
+    .modalFoot{
+      padding:12px 14px 14px;
+      border-top:1px solid rgba(255,255,255,.10);
+      display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;
+    }
+    .imgPreview{
+      width:100%;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.03);
+      margin-top:10px;
+    }
+
+    .small{ font-size:12px; color:var(--muted2); }
+
+    @media (max-width: 980px){
+      .main{ flex-direction:column; }
+      .panel{ width:auto; max-width:none; min-width:0; }
+    }
+  </style>
+</head>
+<body class="theme-blue">
+  <div class="app">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>JPUZ <span class="pill">100% local</span></h1>
+          <span class="sub">Crear → descargar <b>.jpuz</b> → compartir + contraseña → Jugar</span>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="Modo">
+        <button class="tab" id="tabCreate" role="tab" aria-selected="true">Crear</button>
+        <button class="tab" id="tabPlay" role="tab" aria-selected="false">Jugar</button>
+      </div>
+    </header>
+
+    <div class="main">
+      <aside class="panel" id="panelCreate" role="tabpanel" aria-labelledby="tabCreate">
+        <div class="panel-inner">
+          <h2>Crear reto (.jpuz)</h2>
+          <div class="hint">
+            Todo ocurre en tu navegador: se comprime la imagen, se cifra (PBKDF2 + AES-GCM) y se descarga un archivo <b>.jpuz</b>.
+            <br><br>
+            <b>Privacidad práctica:</b> cuando alguien descifra y juega, puede hacer captura de pantalla. No es DRM.
+          </div>
+
+          <div class="hr"></div>
+
+          <label>Imagen</label>
+          <input type="file" id="c_image" accept="image/*" />
+          <img id="c_preview" class="imgPreview" alt="Vista previa" style="display:none" />
+
+          <div class="hr"></div>
+
+          <div class="grid">
+            <div>
+              <label>Piezas X (2–30)</label>
+              <input type="number" id="c_px" min="2" max="30" value="8" />
+            </div>
+            <div>
+              <label>Piezas Y (2–30)</label>
+              <input type="number" id="c_py" min="2" max="30" value="6" />
+            </div>
+            <div>
+              <label>Tiempo límite (s)</label>
+              <input type="number" id="c_solve" min="5" value="300" />
+            </div>
+            <div>
+              <label>Reveal al completar (s)</label>
+              <input type="number" id="c_reveal" min="0" value="6" />
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="grid">
+            <div>
+              <label>Tema inicial</label>
+              <select id="c_theme">
+                <option value="blue">Azul</option>
+                <option value="chalk">Pizarra</option>
+                <option value="forest">Bosque</option>
+              </select>
+            </div>
+            <div>
+              <label>Título (opcional)</label>
+              <input type="text" id="c_title" placeholder="Ej: Atardecer" />
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="check">
+            <input type="checkbox" id="c_mystery" />
+            <div>
+              <b>Mystery mode</b>
+              <span>Si está activo, no existe “box top” (no se puede ver la imagen completa durante el juego).</span>
+            </div>
+          </div>
+
+          <div style="height:10px"></div>
+
+          <div class="check">
+            <input type="checkbox" id="c_allowEdgeOnly" checked />
+            <div>
+              <b>Permitir “Solo bordes”</b>
+              <span>El jugador podrá ocultar/mostrar piezas interiores (útil para puzzles grandes).</span>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <h2>Compresión</h2>
+          <div class="grid">
+            <div>
+              <label>Max dimensión (px)</label>
+              <input type="number" id="c_maxdim" min="256" max="4096" value="1600" />
+              <div class="small">Se redimensiona manteniendo proporción.</div>
+            </div>
+            <div>
+              <label>Calidad JPEG (0.5–1.0)</label>
+              <input type="number" id="c_quality" min="0.5" max="1.0" step="0.05" value="0.85" />
+              <div class="small">Más calidad = más peso.</div>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <label>Contraseña (mín. 8 caracteres)</label>
+          <input type="password" id="c_pass" minlength="8" placeholder="mínimo 8 caracteres" />
+
+          <div class="btns">
+            <button class="btn primary" id="c_generate">Generar y descargar .jpuz</button>
+            <button class="btn" id="c_help">Ayuda / atajos</button>
+          </div>
+
+          <div class="hr"></div>
+          <div class="small">
+            Requiere <b>HTTPS</b> (GitHub Pages) porque WebCrypto lo exige.
+            <br>
+            Estado: <span id="secureBadge">…</span>
+          </div>
+        </div>
+      </aside>
+
+      <aside class="panel" id="panelPlay" role="tabpanel" aria-labelledby="tabPlay" style="display:none">
+        <div class="panel-inner">
+          <h2>Jugar reto</h2>
+          <div class="hint">
+            Carga un archivo <b>.jpuz</b> y escribe la contraseña. Se descifra en tu navegador y se inicia el puzzle.
+          </div>
+
+          <div class="hr"></div>
+
+          <label>Archivo .jpuz</label>
+          <input type="file" id="p_file" accept=".jpuz,application/json" />
+
+          <div class="hr"></div>
+
+          <label>Contraseña</label>
+          <input type="password" id="p_pass" minlength="8" placeholder="contraseña del creador" />
+
+          <div class="btns">
+            <button class="btn primary" id="p_start">Descifrar e iniciar</button>
+            <button class="btn" id="p_help">Ayuda / atajos</button>
+          </div>
+
+          <div class="hr"></div>
+          <div class="small" id="p_info">Sin reto cargado.</div>
+        </div>
+      </aside>
+
+      <section class="stage" aria-label="Zona de juego">
+        <div class="playerbar">
+          <div class="status" aria-live="polite">
+            <div class="dot" id="statusDot"></div>
+            <div style="min-width:0">
+              <div class="txt" id="statusText">Listo</div>
+              <div class="subtxt" id="statusSub">Crea o carga un reto para empezar.</div>
+            </div>
+          </div>
+
+          <div class="timer" id="timerText">--:--</div>
+
+          <div class="controls">
+            <button class="iconbtn" id="btnBoxTop" title="Box top (B)">Box top</button>
+            <button class="iconbtn" id="btnEdges" title="Solo bordes (E)">Solo bordes</button>
+            <button class="iconbtn" id="btnOrganize" title="Organizar piezas (O)">Organizar</button>
+            <button class="iconbtn" id="btnZoomOut" title="Zoom -">−</button>
+            <button class="iconbtn" id="btnZoomIn" title="Zoom +">+</button>
+            <button class="iconbtn" id="btnReframe" title="Reencuadrar (R)">Reencuadrar</button>
+            <button class="iconbtn" id="btnPause" title="Pausar/Reanudar (P)">Pausa</button>
+            <button class="iconbtn" id="btnTheme" title="Cambiar tema (T)">Tema</button>
+            <button class="iconbtn" id="btnFullscreen" title="Pantalla completa (opcional)">Fullscreen</button>
+          </div>
+        </div>
+
+        <div class="canvasWrap" id="canvasWrap">
+          <div id="puzzleCanvas"></div>
+          <div class="hudNote">
+            Pan: arrastra el fondo · Zoom: botones o rueda · Recuperar: Reencuadrar
+            <br><b>B</b> box top, <b>P</b> pausa, <b>T</b> tema, <b>R</b> reencuadrar, <b>O</b> organizar, <b>E</b> solo bordes.
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modalHead">
+        <h3 id="ovTitle">Mensaje</h3>
+        <button class="x" id="ovClose" title="Cerrar (Esc)">✕</button>
+      </div>
+      <div class="modalBody" id="ovBody"></div>
+      <div class="modalFoot" id="ovFoot"></div>
+    </div>
+  </div>
+
+  <script>
+  (() => {
+    "use strict";
+    const $ = (id) => document.getElementById(id);
+
+    /* Overlay */
+    const overlay = $("overlay"), ovTitle = $("ovTitle"), ovBody = $("ovBody"), ovFoot = $("ovFoot"), ovClose = $("ovClose");
+    function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[c])); }
+    function showModal({title, bodyHTML, buttons = []}){
+      ovTitle.textContent = title || "Mensaje";
+      ovBody.innerHTML = bodyHTML || "";
+      ovFoot.innerHTML = "";
+      for(const b of buttons){
+        const btn = document.createElement("button");
+        btn.className = "btn " + (b.kind || "");
+        btn.textContent = b.label || "OK";
+        btn.onclick = () => b.onClick && b.onClick();
+        ovFoot.appendChild(btn);
       }
+      overlay.setAttribute("aria-hidden","false");
+    }
+    function closeModal(){ overlay.setAttribute("aria-hidden","true"); ovBody.innerHTML=""; ovFoot.innerHTML=""; }
+    ovClose.onclick = closeModal;
+    document.addEventListener("keydown", (e) => { if(e.key==="Escape" && overlay.getAttribute("aria-hidden")==="false"){ e.preventDefault(); closeModal(); } });
+
+    /* Status */
+    function setStatus(kind, title, sub){
+      const dot = $("statusDot"), t = $("statusText"), s = $("statusSub");
+      t.textContent = title || ""; s.textContent = sub || "";
+      dot.style.background = kind==="ok" ? "var(--ok)" : kind==="warn" ? "var(--warn)" : kind==="danger" ? "var(--danger)" : "var(--accent)";
+    }
+    const timerText = $("timerText");
+    function fmtTime(ms){
+      const sec = Math.ceil(Math.max(0, ms)/1000);
+      const m = Math.floor(sec/60), s = sec%60;
+      return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+    }
+    function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
+
+    /* Secure badge */
+    $("secureBadge").textContent = window.isSecureContext ? "OK (secure context)" : "NO — necesitas HTTPS (GitHub Pages)";
+
+    /* Tabs */
+    function setMode(mode){
+      const isCreate = mode==="create";
+      $("tabCreate").setAttribute("aria-selected", isCreate?"true":"false");
+      $("tabPlay").setAttribute("aria-selected", !isCreate?"true":"false");
+      $("panelCreate").style.display = isCreate ? "" : "none";
+      $("panelPlay").style.display = !isCreate ? "" : "none";
+    }
+    $("tabCreate").onclick = () => setMode("create");
+    $("tabPlay").onclick = () => setMode("play");
+
+    /* Dynamic loader (fix headbreaker not defined) */
+    async function loadScript(url){
+      return new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = url; s.async = true;
+        s.onload = () => resolve(url);
+        s.onerror = () => reject(new Error("No se pudo cargar: " + url));
+        document.head.appendChild(s);
+      });
+    }
+    async function ensureLib(name, testFn, urls){
+      if(testFn()) return;
+      let lastErr=null;
+      for(const u of urls){
+        try{ await loadScript(u); if(testFn()) return; }
+        catch(e){ lastErr=e; }
+      }
+      throw new Error(`${name} no se pudo cargar. ${lastErr?lastErr.message:""}`);
+    }
+    async function ensureDeps(){
+      await ensureLib("Konva", () => !!window.Konva, [
+        "https://cdnjs.cloudflare.com/ajax/libs/konva/9.3.0/konva.min.js",
+        "https://cdn.jsdelivr.net/npm/konva@9.3.0/konva.min.js"
+      ]);
+      await ensureLib("Headbreaker", () => !!window.headbreaker, [
+        "https://flbulgarelli.github.io/headbreaker/js/headbreaker.js",
+        "https://cdn.jsdelivr.net/gh/flbulgarelli/headbreaker@master/js/headbreaker.js"
+      ]);
+    }
+
+    /* Base64 helpers */
+    function bufToB64(buf){
+      const bytes = new Uint8Array(buf);
+      let bin=""; const chunk=0x8000;
+      for(let i=0;i<bytes.length;i+=chunk) bin += String.fromCharCode(...bytes.subarray(i,i+chunk));
       return btoa(bin);
     }
-    function b64ToBytes(b64){
+    function b64ToBuf(b64){
       const bin = atob(b64);
-      const out = new Uint8Array(bin.length);
-      for (let i=0; i<bin.length; i++) out[i] = bin.charCodeAt(i);
-      return out;
+      const bytes = new Uint8Array(bin.length);
+      for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+      return bytes.buffer;
+    }
+    function dataUrlToB64(dataUrl){
+      const idx = dataUrl.indexOf("base64,");
+      return idx===-1 ? "" : dataUrl.slice(idx+7);
+    }
+    function blobToDataURL(blob){
+      return new Promise((resolve, reject) => {
+        const fr = new FileReader();
+        fr.onload = () => resolve(fr.result);
+        fr.onerror = () => reject(new Error("No se pudo leer blob"));
+        fr.readAsDataURL(blob);
+      });
     }
 
-    // -----------------------------
-    // Crypto (PBKDF2 + AES-GCM)
-    // -----------------------------
-    const enc = new TextEncoder();
-    const dec = new TextDecoder();
-    const KDF_ITER = 200000;
-
-    async function deriveKey(password, salt, iter){
-      const keyMat = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]);
+    /* Crypto */
+    const PBKDF2_ITER = 150000;
+    async function deriveKey(password, saltB64, iter){
+      const enc = new TextEncoder();
+      const baseKey = await crypto.subtle.importKey("raw", enc.encode(password), {name:"PBKDF2"}, false, ["deriveKey"]);
       return crypto.subtle.deriveKey(
-        {name:"PBKDF2", hash:"SHA-256", salt, iterations: iter},
-        keyMat,
+        {name:"PBKDF2", salt:new Uint8Array(b64ToBuf(saltB64)), iterations:iter, hash:"SHA-256"},
+        baseKey,
         {name:"AES-GCM", length:256},
         false,
         ["encrypt","decrypt"]
       );
     }
-
-    async function encryptToJpuz(password, payloadObj){
+    async function encryptPayload(payloadObj, password){
       const salt = crypto.getRandomValues(new Uint8Array(16));
       const iv = crypto.getRandomValues(new Uint8Array(12));
-      const key = await deriveKey(password, salt, KDF_ITER);
-
-      const pt = enc.encode(JSON.stringify(payloadObj));
+      const iter = PBKDF2_ITER;
+      const key = await deriveKey(password, bufToB64(salt.buffer), iter);
+      const pt = new TextEncoder().encode(JSON.stringify(payloadObj));
       const ctBuf = await crypto.subtle.encrypt({name:"AES-GCM", iv}, key, pt);
-
-      return {
-        v: 1,
-        kdf: "PBKDF2",
-        iter: KDF_ITER,
-        salt: bytesToB64(salt),
-        alg: "AES-GCM",
-        iv: bytesToB64(iv),
-        ct: bytesToB64(new Uint8Array(ctBuf))
-      };
+      return { v:1, kdf:"PBKDF2", iter, salt:bufToB64(salt.buffer), alg:"AES-GCM", iv:bufToB64(iv.buffer), ct:bufToB64(ctBuf) };
     }
-
-    async function decryptFromJpuz(password, jpuzObj){
-      const req = ["v","kdf","iter","salt","alg","iv","ct"];
-      for (const k of req) if (!(k in jpuzObj)) throw new Error("Falta campo en .jpuz: " + k);
-      if (jpuzObj.v !== 1) throw new Error("Versión .jpuz no soportada.");
-      if (jpuzObj.kdf !== "PBKDF2") throw new Error("KDF no soportada.");
-      if (jpuzObj.alg !== "AES-GCM") throw new Error("Algoritmo no soportado.");
-
-      const salt = b64ToBytes(jpuzObj.salt);
-      const iv = b64ToBytes(jpuzObj.iv);
-      const ct = b64ToBytes(jpuzObj.ct);
-      const iter = Number(jpuzObj.iter);
-
-      const key = await deriveKey(password, salt, iter);
-
+    async function decryptChallenge(obj, password){
+      if(!obj || obj.v!==1) throw new Error("Versión .jpuz no soportada.");
+      if(obj.kdf!=="PBKDF2" || obj.alg!=="AES-GCM") throw new Error("KDF/ALG no soportados.");
+      const key = await deriveKey(password, obj.salt, obj.iter);
       let ptBuf;
       try{
-        ptBuf = await crypto.subtle.decrypt({name:"AES-GCM", iv}, key, ct);
+        ptBuf = await crypto.subtle.decrypt({name:"AES-GCM", iv:new Uint8Array(b64ToBuf(obj.iv))}, key, b64ToBuf(obj.ct));
       }catch{
-        throw new Error("Descifrado fallido: contraseña incorrecta o archivo corrupto.");
+        throw new Error("Contraseña incorrecta o archivo corrupto.");
       }
-      const json = dec.decode(ptBuf);
-      return JSON.parse(json);
+      const json = new TextDecoder().decode(ptBuf);
+      try{ return JSON.parse(json); }catch{ throw new Error("Payload descifrado no es JSON válido."); }
     }
 
-    // -----------------------------
-    // Image processing (resize + crop ratio puzzle + JPEG)
-    // -----------------------------
-    function clamp(n,a,b){ return Math.min(b, Math.max(a, n)); }
-
-    async function compressImageToJpegBase64(file, {maxDim, quality, targetAspect}){
-      const bmp = await createImageBitmap(file);
-
-      // resize
-      const inW = bmp.width, inH = bmp.height;
-      const scale = Math.min(1, maxDim / Math.max(inW, inH));
-      const rW = Math.max(1, Math.round(inW * scale));
-      const rH = Math.max(1, Math.round(inH * scale));
-
-      const tmp = document.createElement("canvas");
-      tmp.width = rW; tmp.height = rH;
-      const tctx = tmp.getContext("2d", {alpha:false, desynchronized:true});
-      tctx.imageSmoothingEnabled = true;
-      tctx.imageSmoothingQuality = "high";
-      tctx.drawImage(bmp, 0, 0, rW, rH);
-
-      // center crop to targetAspect (so puzzle fills nicely)
-      let sx=0, sy=0, sw=rW, sh=rH;
-      if (targetAspect && isFinite(targetAspect) && targetAspect > 0){
-        const cur = rW / rH;
-        if (cur > targetAspect){
-          sh = rH;
-          sw = Math.round(rH * targetAspect);
-          sx = Math.round((rW - sw)/2);
-        }else if (cur < targetAspect){
-          sw = rW;
-          sh = Math.round(rW / targetAspect);
-          sy = Math.round((rH - sh)/2);
-        }
-      }
-
-      const out = document.createElement("canvas");
-      out.width = sw; out.height = sh;
-      const octx = out.getContext("2d", {alpha:false, desynchronized:true});
-      octx.imageSmoothingEnabled = true;
-      octx.imageSmoothingQuality = "high";
-      octx.drawImage(tmp, sx, sy, sw, sh, 0, 0, sw, sh);
-
-      const blob = await new Promise((resolve, reject) => {
-        out.toBlob(b => b ? resolve(b) : reject(new Error("Fallo codificando JPEG.")), "image/jpeg", quality);
-      });
-
-      const b64 = await new Promise((resolve, reject) => {
-        const r = new FileReader();
-        r.onload = () => {
-          const s = String(r.result || "");
-          const i = s.indexOf(",");
-          resolve(i >= 0 ? s.slice(i+1) : s);
-        };
-        r.onerror = () => reject(new Error("No se pudo leer JPEG."));
-        r.readAsDataURL(blob);
-      });
-
-      return { mime:"image/jpeg", imgB64:b64, w: sw, h: sh, bytes: blob.size };
-    }
-
-    function downloadText(filename, text){
-      const blob = new Blob([text], {type:"application/json"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1500);
-    }
-
-    // -----------------------------
-    // Robust loader for Konva + Headbreaker
-    // -----------------------------
-    function loadScript(src){
-      return new Promise((resolve, reject) => {
-        const s = document.createElement("script");
-        s.src = src;
-        s.async = false;
-        s.onload = () => resolve(src);
-        s.onerror = () => reject(new Error("No se pudo cargar: " + src));
-        document.head.appendChild(s);
-      });
-    }
-
-    async function loadFirstWorking(name, urls, testFn){
-      let lastErr = null;
-      for (const u of urls){
+    /* Image compression */
+    async function decodeImageFromFile(file){
+      if("createImageBitmap" in window){
         try{
-          await loadScript(u);
-          if (testFn()) return u;
-          lastErr = new Error(name + " cargó pero no expuso el global esperado: " + u);
-        }catch(e){
-          lastErr = e;
-        }
+          const bmp = await createImageBitmap(file);
+          return {kind:"bitmap", obj:bmp, width:bmp.width, height:bmp.height};
+        }catch{}
       }
-      throw lastErr || new Error("No se pudo cargar " + name);
+      const url = URL.createObjectURL(file);
+      const img = new Image(); img.decoding="async"; img.src=url;
+      await new Promise((res, rej)=>{ img.onload=res; img.onerror=()=>rej(new Error("No se pudo decodificar imagen")); });
+      URL.revokeObjectURL(url);
+      return {kind:"img", obj:img, width:img.naturalWidth, height:img.naturalHeight};
+    }
+    async function compressToJpegBase64(file, maxDim, quality){
+      const decoded = await decodeImageFromFile(file);
+      const w0=decoded.width, h0=decoded.height;
+      const scale = Math.min(1, maxDim/Math.max(w0,h0));
+      const w=Math.max(1, Math.round(w0*scale));
+      const h=Math.max(1, Math.round(h0*scale));
+      await new Promise(r=>requestAnimationFrame(r));
+      const c=document.createElement("canvas"); c.width=w; c.height=h;
+      const ctx=c.getContext("2d",{alpha:false});
+      ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high";
+      ctx.drawImage(decoded.obj,0,0,w,h);
+      try{ decoded.obj.close && decoded.obj.close(); }catch{}
+      const blob = await new Promise(res=>c.toBlob(res,"image/jpeg",quality));
+      if(!blob) throw new Error("toBlob devolvió null");
+      const dataUrl = await blobToDataURL(blob);
+      return { mime:"image/jpeg", imgB64:dataUrlToB64(dataUrl) };
     }
 
-    async function loadLibs(){
-      setStatus("Cargando librerías (Konva/Headbreaker)…", "warn");
-
-      const konvaURL = await loadFirstWorking(
-        "Konva",
-        [
-          "./vendor/konva.min.js",
-          "https://cdnjs.cloudflare.com/ajax/libs/konva/8.4.3/konva.min.js",
-          "https://cdn.jsdelivr.net/npm/konva@8.4.3/konva.min.js"
-        ],
-        () => !!window.Konva
-      );
-
-      const hbURL = await loadFirstWorking(
-        "Headbreaker",
-        [
-          "./vendor/headbreaker.js",
-          "https://flbulgarelli.github.io/headbreaker/js/headbreaker.js"
-        ],
-        () => !!window.headbreaker && !!window.headbreaker.Canvas
-      );
-
-      return { konvaURL, hbURL };
-    }
-
-    // -----------------------------
-    // Puzzle runtime
-    // -----------------------------
-    const game = {
-      canvas: null,
-      payload: null,
-      imgDataUrl: null,
-      state: "idle", // idle|playing|paused|timeout|solved|finished
-      endAt: 0,
-      pausedRemaining: 0,
-      tickId: null,
-      mystery: false
-    };
-
-    function setTimerSeconds(sec){
-      const s = Math.max(0, Math.ceil(sec));
-      const mm = String(Math.floor(s/60)).padStart(2,"0");
-      const ss = String(s%60).padStart(2,"0");
-      el.timeText.textContent = `${mm}:${ss}`;
-    }
-    function stopTimer(){
-      if (game.tickId) clearInterval(game.tickId);
-      game.tickId = null;
-    }
-    function remainingSeconds(){
-      if (game.state === "paused") return Math.ceil(game.pausedRemaining/1000);
-      return Math.ceil((game.endAt - performance.now())/1000);
-    }
-    function startTimer(seconds){
-      stopTimer();
-      game.endAt = performance.now() + seconds*1000;
-      setTimerSeconds(seconds);
-      game.tickId = setInterval(() => {
-        if (game.state !== "playing") return;
-        const rem = remainingSeconds();
-        setTimerSeconds(rem);
-        if (rem <= 0) onTimeout();
-      }, 200);
-    }
-
-    function enableControls(active){
-      el.btnPause.disabled = !active;
-      el.btnReframe.disabled = !active;
-      el.btnBoxTop.disabled = !active || game.mystery;
-    }
-
-    function clearBoard(){
-      stopTimer();
-      game.state = "idle";
-      game.payload = null;
-      game.imgDataUrl = null;
-      game.mystery = false;
-      setTimerSeconds(0);
-
-      el.btnRestart.disabled = true;
-
-      try{
-        if (game.canvas) game.canvas.clear();
-      }catch{}
-      game.canvas = null;
-
-      // wipe host
-      el.canvasHost.replaceChildren();
-
-      enableControls(false);
-      setStatus("Listo. Crea un reto o carga un .jpuz.", "neutral");
-    }
-
-    function boardSize(){
-      const r = el.board.getBoundingClientRect();
-      return { w: Math.floor(r.width), h: Math.floor(r.height) };
-    }
-
-    function setTargetFrame(piecesX, piecesY, pieceSize){
-      el.targetFrame.style.width = Math.round(piecesX * pieceSize) + "px";
-      el.targetFrame.style.height = Math.round(piecesY * pieceSize) + "px";
-    }
-
-    function gridMetadata(px, py){
-      const out = [];
-      for (let row=0; row<py; row++){
-        for (let col=0; col<px; col++){
-          out.push({ row, col });
-        }
-      }
-      return out;
-    }
-
-    function ensureSecureContext(){
-      if (!window.isSecureContext || !window.crypto?.subtle){
-        showOverlay({
-          title: "HTTPS requerido",
-          html: `
-            <p>Esta app usa <b>WebCrypto</b> (PBKDF2 + AES-GCM). Eso requiere <b>HTTPS</b> (GitHub Pages vale).</p>
-            <p class="hint">Si abriste el archivo con <code>file://</code>, publícalo en GitHub Pages o usa un servidor local HTTPS.</p>
-          `,
-          actions: [{label:"Entendido", primary:true, onClick: () => hideOverlay(true)}],
-          lock: false
-        });
-        throw new Error("Contexto no seguro: se requiere HTTPS para WebCrypto.");
-      }
-    }
-
-    async function loadImage(url){
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.onerror = () => reject(new Error("No se pudo cargar la imagen (data URL)."));
-        img.src = url;
-      });
-    }
-
-    async function buildPuzzle(payload){
-      const hb = window.headbreaker;
-      if (!hb?.Canvas) throw new Error("Headbreaker no está disponible.");
-
-      // clean previous
-      try{ if (game.canvas) game.canvas.clear(); }catch{}
-      game.canvas = null;
-      el.canvasHost.replaceChildren();
-
-      // validate payload
-      const piecesX = clamp(Number(payload.piecesX), 2, 30);
-      const piecesY = clamp(Number(payload.piecesY), 2, 30);
-      const solveSeconds = Math.max(1, Math.floor(Number(payload.solveSeconds)));
-      const revealSeconds = Math.max(0, Math.floor(Number(payload.revealSeconds)));
-      const mystery = !!payload.mystery;
-      const bgTheme = String(payload.bgTheme || "blue");
-
-      setTheme(bgTheme);
-
-      game.payload = { ...payload, piecesX, piecesY, solveSeconds, revealSeconds, mystery, bgTheme };
-      game.imgDataUrl = `data:${payload.mime};base64,${payload.img}`;
-      game.mystery = mystery;
-
-      // load image
-      const img = await loadImage(game.imgDataUrl);
-
-      const { w, h } = boardSize();
-
-      // Make final puzzle smaller than workbench (mesa amplia)
-      const frameScale = 0.58;
-      const pieceSize = clamp(
-        Math.floor(Math.min((w*frameScale)/piecesX, (h*frameScale)/piecesY)),
-        22,
-        140
-      );
-
-      const proximity = clamp(Math.round(pieceSize * 0.16), 10, 30);
-      const borderFill = clamp(Math.round(pieceSize * 0.11), 6, 18);
-      const strokeWidth = clamp(pieceSize * 0.028, 1.0, 2.6);
-
-      setTargetFrame(piecesX, piecesY, pieceSize);
-
-      const opts = {
-        width: w,
-        height: h,
-        pieceSize,
-        proximity,
-        borderFill,
-        strokeWidth,
-        strokeColor: "rgba(0,0,0,.32)",
-        lineSoftness: 0.22,
-        outline: new hb.outline.Rounded(),
-        image: img,
-        fixed: true,
-        preventOffstageDrag: false,
-        maxPiecesCount: {x: piecesX, y: piecesY},
-      };
-
-      // Prefer explicit Konva painter if available
-      if (hb.painters?.Konva) {
-        opts.painter = new hb.painters.Konva();
-      }
-
-      const canvas = new hb.Canvas("canvasHost", opts);
-
-      // Scale image to puzzle
-      // (como en la doc: adjustImagesToPuzzleWidth/Height)
-      if ((img.naturalWidth / img.naturalHeight) >= (piecesX / piecesY)) canvas.adjustImagesToPuzzleHeight();
-      else canvas.adjustImagesToPuzzleWidth();
-
-      // Generate puzzle with nicer cuts
-      canvas.autogenerate({
-        horizontalPiecesCount: piecesX,
-        verticalPiecesCount: piecesY,
-        insertsGenerator: hb.generators.random,
-        metadata: gridMetadata(piecesX, piecesY)
-      });
-
-      // IMPORTANT: strict correct connections only (no incorrect snaps)
-      canvas.puzzle.attachHorizontalConnectionRequirement((a, b) => {
-        return a.metadata.row === b.metadata.row && Math.abs(a.metadata.col - b.metadata.col) === 1;
-      });
-      canvas.puzzle.attachVerticalConnectionRequirement((a, b) => {
-        return a.metadata.col === b.metadata.col && Math.abs(a.metadata.row - b.metadata.row) === 1;
-      });
-
-      // lock connected groups
-      canvas.puzzle.forceConnectionWhileDragging();
-
-      // solved callback
-      canvas.attachSolvedValidator();
-      canvas.onValid(() => {
-        if (game.state === "playing") onSolved();
-      });
-
-      // shuffle into workbench
-      canvas.shuffleGrid(0.95);
-      canvas.draw();
-
-      game.canvas = canvas;
-
-      // start playing
-      game.state = "playing";
-      startTimer(solveSeconds);
-      enableControls(true);
-      el.btnRestart.disabled = false;
-
-      setStatus("En juego…", "good");
-      el.btnBoxTop.disabled = mystery; // no box top in mystery
-    }
-
-    function onTimeout(){
-      if (game.state !== "playing") return;
-      game.state = "timeout";
-      stopTimer();
-      setTimerSeconds(0);
-      enableControls(false);
-      setStatus("Tiempo agotado.", "bad");
-
-      showOverlay({
-        title: "Tiempo agotado",
-        html: `
-          <p>Se agotó el tiempo. Por requisito, <b>no se muestra la imagen</b>.</p>
-          <p class="hint">Puedes reiniciar para intentarlo de nuevo.</p>
-        `,
-        actions: [
-          {label:"Reiniciar", primary:true, onClick: () => { hideOverlay(true); restartSame(); }},
-        ],
-        lock: true
-      });
-    }
-
-    function onSolved(){
-      game.state = "solved";
-      stopTimer();
-      setStatus("Resuelto. Revelando…", "good");
-
-      const reveal = Math.max(0, Number(game.payload?.revealSeconds || 0));
-      const title = String(game.payload?.title || "Reto completado");
-
-      showOverlay({
-        title,
-        html: `
-          <p>¡Bien! Se muestra la imagen completa durante <b>${reveal}</b> s.</p>
-          <img alt="Reveal" src="${game.imgDataUrl}">
-          <p class="hint">Privacidad práctica: tras descifrar, se puede capturar pantalla.</p>
-        `,
-        actions: [],
-        lock: true
-      });
-
-      setTimeout(() => {
-        game.state = "finished";
-        setStatus("Fin.", "warn");
-        showOverlay({
-          title: "Fin",
-          html: `<p>Terminó el reveal.</p>`,
-          actions: [
-            {label:"Jugar de nuevo", primary:true, onClick: () => { hideOverlay(true); restartSame(); }},
-            {label:"Cerrar", primary:false, onClick: () => { hideOverlay(true); }},
-          ],
-          lock: true
-        });
-      }, reveal * 1000);
-    }
-
-    function togglePause(){
-      if (game.state === "playing"){
-        game.state = "paused";
-        game.pausedRemaining = Math.max(0, game.endAt - performance.now());
-        setStatus("Pausado.", "warn");
-        showOverlay({
-          title: "Pausado",
-          html: `<p>Temporizador detenido.</p><p class="hint">Pulsa P para reanudar.</p>`,
-          actions: [{label:"Reanudar", primary:true, onClick: () => { hideOverlay(true); togglePause(); }}],
-          lock: false
-        });
-      } else if (game.state === "paused"){
-        hideOverlay(true);
-        game.state = "playing";
-        game.endAt = performance.now() + game.pausedRemaining;
-        game.pausedRemaining = 0;
-        setStatus("En juego…", "good");
-      }
-    }
-
-    function reframe(){
-      try{
-        if (!game.canvas) return;
-        game.canvas.reframeWithinDimensions();
-        game.canvas.redraw();
-      }catch{}
-    }
-
-    function showBoxTop(){
-      if (game.mystery || !game.imgDataUrl) return;
-      showOverlay({
-        title: "Box top",
-        html: `<p class="hint">Ayuda visual (B). No es DRM: se puede capturar pantalla.</p><img alt="Box top" src="${game.imgDataUrl}">`,
-        actions: [{label:"Cerrar", primary:true, onClick: () => hideOverlay(true)}],
-        lock: false
-      });
-    }
-
-    async function restartSame(){
-      if (!game.payload) return;
-      showOverlay({
-        title: "Reiniciando…",
-        html: `<p><span class="spinner"></span>Preparando puzzle…</p>`,
-        actions: [],
-        lock: true
-      });
-      try{
-        await buildPuzzle(game.payload);
-        hideOverlay(true);
-      }catch(e){
-        hideOverlay(true);
-        showOverlay({
-          title: "Error",
-          html: `<p>${escapeHtml(String(e?.message || e))}</p>`,
-          actions: [{label:"Cerrar", primary:true, onClick: () => hideOverlay(true)}],
-          lock: false
-        });
-      }
-    }
-
-    // -----------------------------
-    // Keyboard shortcuts
-    // -----------------------------
-    function isTypingTarget(t){
-      const tag = (t && t.tagName) ? t.tagName.toLowerCase() : "";
-      return tag === "input" || tag === "textarea" || tag === "select" || (t && t.isContentEditable);
-    }
-
-    window.addEventListener("keydown", (e) => {
-      if (isTypingTarget(e.target)) return;
-
-      if (e.key === "Escape"){
-        hideOverlay(false);
-        return;
-      }
-      if (e.key === "b" || e.key === "B") showBoxTop();
-      if (e.key === "p" || e.key === "P") togglePause();
-      if (e.key === "t" || e.key === "T") cycleTheme();
-      if (e.key === "r" || e.key === "R") reframe();
+    /* Create UI */
+    const c_image=$("c_image"), c_preview=$("c_preview");
+    c_image.addEventListener("change", () => {
+      const f=c_image.files && c_image.files[0];
+      if(!f) return;
+      const url=URL.createObjectURL(f);
+      c_preview.src=url; c_preview.style.display="";
+      c_preview.onload=()=>URL.revokeObjectURL(url);
     });
 
-    // -----------------------------
-    // Wire controls
-    // -----------------------------
-    el.btnPause.addEventListener("click", togglePause);
-    el.btnReframe.addEventListener("click", reframe);
-    el.btnBoxTop.addEventListener("click", showBoxTop);
-
-    // -----------------------------
-    // Create flow
-    // -----------------------------
-    function refreshCreateInfo(){
-      const x = clamp(Number(el.cX.value || 8), 2, 30);
-      const y = clamp(Number(el.cY.value || 6), 2, 30);
-      el.createInfo.textContent = `${x}×${y} = ${x*y} piezas`;
+    function helpModal(){
+      showModal({
+        title:"Ayuda y atajos",
+        bodyHTML: `
+          <p><b>Atajos (Jugar):</b></p>
+          <ul>
+            <li><b>B</b>: box top (si no mystery)</li>
+            <li><b>P</b>: pausar/reanudar</li>
+            <li><b>T</b>: cambiar tema</li>
+            <li><b>R</b>: reencuadrar</li>
+            <li><b>O</b>: organizar</li>
+            <li><b>E</b>: solo bordes</li>
+            <li><b>Esc</b>: cerrar overlays</li>
+          </ul>
+          <p class="small">Privacidad práctica: no se puede impedir al 100% una captura de pantalla tras descifrar.</p>
+        `,
+        buttons:[{label:"Cerrar", kind:"primary", onClick: closeModal}]
+      });
     }
-    el.cX.addEventListener("input", refreshCreateInfo);
-    el.cY.addEventListener("input", refreshCreateInfo);
-    refreshCreateInfo();
+    $("c_help").onclick = helpModal;
+    $("p_help").onclick = helpModal;
 
-    el.btnGenerate.addEventListener("click", async () => {
+    $("c_generate").onclick = async () => {
       try{
-        ensureSecureContext();
+        if(!window.isSecureContext) throw new Error("Necesitas HTTPS (GitHub Pages) para WebCrypto.");
+        const f=c_image.files && c_image.files[0];
+        if(!f) throw new Error("Selecciona una imagen.");
+        const piecesX = clamp(parseInt($("c_px").value,10)||0,2,30);
+        const piecesY = clamp(parseInt($("c_py").value,10)||0,2,30);
+        const solveSeconds = Math.max(5, parseInt($("c_solve").value,10)||0);
+        const revealSeconds = Math.max(0, parseInt($("c_reveal").value,10)||0);
+        const mystery = !!$("c_mystery").checked;
+        const allowEdgeOnly = !!$("c_allowEdgeOnly").checked;
+        const bgTheme = $("c_theme").value || "blue";
+        const title = ($("c_title").value||"").trim();
+        const maxDim = clamp(parseInt($("c_maxdim").value,10)||1600,256,4096);
+        const quality = clamp(parseFloat($("c_quality").value)||0.85,0.5,1.0);
+        const password = $("c_pass").value||"";
+        if(password.length<8) throw new Error("La contraseña debe tener al menos 8 caracteres.");
 
-        const file = el.cImage.files && el.cImage.files[0];
-        if (!file) throw new Error("Selecciona una imagen.");
+        showModal({title:"Procesando…", bodyHTML:"<p>Comprimiendo y cifrando (local)…</p>", buttons:[]});
 
-        const piecesX = clamp(Number(el.cX.value || 8), 2, 30);
-        const piecesY = clamp(Number(el.cY.value || 6), 2, 30);
-        const solveSeconds = Math.max(1, Math.floor(Number(el.cSolve.value || 300)));
-        const revealSeconds = Math.max(0, Math.floor(Number(el.cReveal.value || 6)));
-        const mystery = !!el.cMystery.checked;
-        const bgTheme = String(el.cTheme.value || "blue");
-
-        const maxDim = clamp(Number(el.cMaxDim.value || 1600), 256, 4096);
-        const quality = clamp(Number(el.cQ.value || 0.85), 0.5, 1.0);
-
-        const title = String(el.cTitle.value || "").trim();
-        const pwd = String(el.cPwd.value || "");
-        if (pwd.length < 8) throw new Error("La contraseña debe tener mínimo 8 caracteres.");
-
-        setTheme(bgTheme);
-
-        showOverlay({
-          title: "Procesando…",
-          html: `<p><span class="spinner"></span>Comprimiendo y cifrando localmente…</p>`,
-          actions: [],
-          lock: true
-        });
-
-        // crop to puzzle ratio to look nicer (less letterboxing)
-        const targetAspect = piecesX / piecesY;
-        const comp = await compressImageToJpegBase64(file, {maxDim, quality, targetAspect});
-
+        const comp = await compressToJpegBase64(f, maxDim, quality);
         const payload = {
-          v: 1,
           mime: comp.mime,
           img: comp.imgB64,
-          piecesX,
-          piecesY,
-          solveSeconds,
-          revealSeconds,
+          piecesX, piecesY,
+          solveSeconds, revealSeconds,
           mystery,
           bgTheme,
+          allowEdgeOnly,
           createdAt: new Date().toISOString(),
-          title: title || undefined,
-          compression: { maxDim, quality }
+          title
         };
 
-        const jpuz = await encryptToJpuz(pwd, payload);
-        const text = JSON.stringify(jpuz, null, 2);
+        const jpuz = await encryptPayload(payload, password);
+        const blob = new Blob([JSON.stringify(jpuz,null,2)], {type:"application/json"});
+        const a=document.createElement("a");
+        a.href=URL.createObjectURL(blob);
+        a.download="reto.jpuz";
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(()=>URL.revokeObjectURL(a.href), 1500);
 
-        downloadText("reto.jpuz", text);
-
-        hideOverlay(true);
-        showOverlay({
-          title: "Reto generado",
-          html: `<p>Se descargó <code>reto.jpuz</code>.</p><p class="hint">Comparte archivo y contraseña por separado.</p>`,
-          actions: [{label:"Cerrar", primary:true, onClick: () => hideOverlay(true)}],
-          lock: false
-        });
-
-        setStatus("Reto creado. Puedes ir a “Jugar” y cargar el .jpuz.", "good");
-
-      }catch(e){
-        hideOverlay(true);
-        showOverlay({
-          title: "Error",
-          html: `<p>${escapeHtml(String(e?.message || e))}</p>`,
-          actions: [{label:"Cerrar", primary:true, onClick: () => hideOverlay(true)}],
-          lock: false
-        });
-        setStatus("Error.", "bad");
+        closeModal();
+        setStatus("ok","Reto generado","Descargado como reto.jpuz");
+      }catch(err){
+        showModal({title:"Error", bodyHTML:`<p>${escapeHtml(err.message||String(err))}</p>`, buttons:[{label:"Cerrar", kind:"primary", onClick: closeModal}]});
+        setStatus("danger","Error","No se pudo generar el reto.");
       }
-    });
+    };
 
-    // -----------------------------
-    // Play flow
-    // -----------------------------
-    el.btnStart.addEventListener("click", async () => {
+    /* Play / Game */
+    let lastPayload=null;
+    $("p_start").onclick = async () => {
       try{
-        ensureSecureContext();
+        if(!window.isSecureContext) throw new Error("Necesitas HTTPS (GitHub Pages) para WebCrypto.");
+        const file = $("p_file").files && $("p_file").files[0];
+        if(!file) throw new Error("Selecciona un archivo .jpuz.");
+        const password = $("p_pass").value||"";
+        if(password.length<8) throw new Error("Contraseña demasiado corta.");
 
-        const f = el.pFile.files && el.pFile.files[0];
-        if (!f) throw new Error("Selecciona un .jpuz.");
-        const pwd = String(el.pPwd.value || "");
-        if (pwd.length < 8) throw new Error("Contraseña inválida (mínimo 8).");
+        showModal({title:"Descifrando…", bodyHTML:"<p>Descifrando localmente…</p>", buttons:[]});
+        const text = await file.text();
+        let obj; try{ obj=JSON.parse(text); }catch{ throw new Error("El .jpuz no es JSON válido."); }
+        const payload = await decryptChallenge(obj, password);
 
-        showOverlay({
-          title: "Descifrando…",
-          html: `<p><span class="spinner"></span>Descifrando localmente…</p>`,
-          actions: [],
-          lock: true
-        });
+        lastPayload = payload;
+        $("p_info").innerHTML =
+          `Reto: <b>${escapeHtml(payload.title||"Sin título")}</b><br>`+
+          `Piezas: <b>${payload.piecesX}×${payload.piecesY}</b> · Tiempo: <b>${payload.solveSeconds}s</b>`;
 
-        const text = await f.text();
-        let jpuz;
-        try{ jpuz = JSON.parse(text); }catch{ throw new Error("El archivo .jpuz no es JSON válido."); }
-
-        const payload = await decryptFromJpuz(pwd, jpuz);
-
-        hideOverlay(true);
-
-        showOverlay({
-          title: "Preparando puzzle…",
-          html: `<p><span class="spinner"></span>Generando piezas…</p>`,
-          actions: [],
-          lock: true
-        });
-
-        await buildPuzzle(payload);
-
-        hideOverlay(true);
-
-      }catch(e){
-        hideOverlay(true);
-        showOverlay({
-          title: "Error",
-          html: `<p>${escapeHtml(String(e?.message || e))}</p>`,
-          actions: [{label:"Cerrar", primary:true, onClick: () => hideOverlay(true)}],
-          lock: false
-        });
-        setStatus("Error.", "bad");
+        closeModal();
+        await startGame(payload);
+      }catch(err){
+        showModal({title:"Error", bodyHTML:`<p>${escapeHtml(err.message||String(err))}</p>`, buttons:[{label:"Cerrar", kind:"primary", onClick: closeModal}]});
+        setStatus("danger","Error","No se pudo iniciar.");
       }
-    });
+    };
 
-    el.btnRestart.addEventListener("click", () => restartSame());
+    /* Theme */
+    function setTheme(t){
+      document.body.classList.remove("theme-blue","theme-chalk","theme-forest");
+      document.body.classList.add(t==="chalk"?"theme-chalk":t==="forest"?"theme-forest":"theme-blue");
+    }
+    function cycleTheme(){
+      const cur = document.body.classList.contains("theme-chalk") ? "chalk" :
+                  document.body.classList.contains("theme-forest") ? "forest" : "blue";
+      setTheme(cur==="blue"?"chalk":cur==="chalk"?"forest":"blue");
+    }
+    $("btnTheme").onclick = cycleTheme;
 
-    // -----------------------------
-    // Resize
-    // -----------------------------
-    let resizeT = null;
-    window.addEventListener("resize", () => {
-      if (!game.canvas) return;
-      if (resizeT) clearTimeout(resizeT);
-      resizeT = setTimeout(() => {
-        try{
-          const {w,h} = boardSize();
-          game.canvas.resize(w,h);
-          game.canvas.redraw();
-        }catch{}
-      }, 120);
-    });
+    /* Controls refs */
+    const btnBoxTop=$("btnBoxTop"), btnEdges=$("btnEdges"), btnOrganize=$("btnOrganize");
+    const btnZoomIn=$("btnZoomIn"), btnZoomOut=$("btnZoomOut"), btnReframe=$("btnReframe");
+    const btnPause=$("btnPause"), btnFullscreen=$("btnFullscreen");
 
-    // -----------------------------
-    // Small helpers
-    // -----------------------------
-    function escapeHtml(s){
-      return String(s)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
+    /* Game state */
+    let game=null;
+
+    function destroyStage(){
+      try{ game && game.stage && game.stage.destroy(); }catch{}
+      $("puzzleCanvas").innerHTML="";
     }
 
-    // -----------------------------
-    // Boot: load libs then enable app
-    // -----------------------------
-    async function boot(){
-      try{
-        const { konvaURL, hbURL } = await loadLibs();
+    function disableControls(){
+      const running = !!(game && game.running);
+      btnPause.disabled = !running;
+      btnOrganize.disabled = !running;
+      btnZoomIn.disabled = !running;
+      btnZoomOut.disabled = !running;
+      btnReframe.disabled = !running;
 
-        setStatus("Listo. Crea un reto o carga un .jpuz.", "neutral");
-        el.timeText.textContent = "--:--";
+      btnTheme.disabled = false;
+      btnFullscreen.disabled = false;
 
-        // Now app is ready
-        el.btnGenerate.disabled = false;
-        el.btnStart.disabled = false;
+      const allowBoxTop = running && game && !game.payload.mystery && !game.timeUp;
+      btnBoxTop.disabled = !allowBoxTop;
+      btnBoxTop.style.display = (game && game.payload && game.payload.mystery) ? "none" : "";
 
-        // Explain what got loaded (helpful for debugging)
-        // (Shown only if you open overlay manually; not spamming)
-        // console.log({konvaURL, hbURL});
+      const allowEdges = running && game && !!game.payload.allowEdgeOnly && !game.timeUp;
+      btnEdges.disabled = !allowEdges;
+      btnEdges.style.display = (game && game.payload && game.payload.allowEdgeOnly) ? "" : "none";
+    }
 
-      }catch(e){
-        setStatus("No se pudieron cargar librerías.", "bad");
-        showOverlay({
-          title: "No se pudieron cargar librerías (Konva/Headbreaker)",
-          html: `
-            <p><b>Detalle:</b> ${escapeHtml(String(e?.message || e))}</p>
-            <p class="hint">
-              Esto suele pasar por: bloqueo de red/CDN, adblock, o falta de archivos vendorizados.
-              <br><br>
-              <b>Solución más robusta (sin depender de CDNs):</b>
-              <br>1) Crea carpeta <code>vendor/</code> en tu repo.
-              <br>2) Descarga y guarda:
-              <br>&nbsp;&nbsp;• <code>vendor/konva.min.js</code>
-              <br>&nbsp;&nbsp;• <code>vendor/headbreaker.js</code>
-              <br>3) Recarga la página: el loader de este index los intentará primero.
-            </p>
-            <p class="hint">
-              Nota: para cifrar/descifrar necesitas HTTPS (GitHub Pages).
-            </p>
-          `,
-          actions: [{label:"Cerrar", primary:true, onClick: () => hideOverlay(true)}],
-          lock: false
-        });
+    function setInteraction(enabled){
+      if(!game || !game.hb) return;
+      try{ game.stage.draggable(enabled && !game.timeUp && !game.finished); }catch{}
+      for(const p of game.hb.puzzle.pieces){
+        const fig = game.hb.getFigure(p);
+        if(!fig || !fig.group) continue;
+        const visible = fig.group.visible();
+        fig.group.draggable(!!(enabled && visible && !game.timeUp && !game.finished && !game.paused));
       }
     }
 
-    // Disable actions until libs load
-    el.btnGenerate.disabled = true;
-    el.btnStart.disabled = true;
+    /* STRICT connection rules: only real neighbors (prevents wrong snaps) */
+    function attachStrictConnectionRules(hb){
+      const stepX = hb.puzzle.pieceDiameter.x;
+      const stepY = hb.puzzle.pieceDiameter.y;
+      const eps = Math.max(1, Math.min(stepX, stepY) * 0.02);
 
-    // Controls initial state
-    enableControls(false);
-    setTimerSeconds(0);
+      function isNeighborH(a, b){
+        const ta=a.metadata.targetPosition, tb=b.metadata.targetPosition;
+        if(!ta || !tb) return false;
+        return (Math.abs(ta.y - tb.y) <= eps) && (Math.abs(Math.abs(ta.x - tb.x) - stepX) <= eps);
+      }
+      function isNeighborV(a, b){
+        const ta=a.metadata.targetPosition, tb=b.metadata.targetPosition;
+        if(!ta || !tb) return false;
+        return (Math.abs(ta.x - tb.x) <= eps) && (Math.abs(Math.abs(ta.y - tb.y) - stepY) <= eps);
+      }
 
-    // Tab initial
-    setTab("create");
+      hb.puzzle.attachHorizontalConnectionRequirement((a,b)=>isNeighborH(a,b));
+      hb.puzzle.attachVerticalConnectionRequirement((a,b)=>isNeighborV(a,b));
+    }
 
-    // Reframe button action (works only when playing)
-    el.btnReframe.addEventListener("click", reframe);
+    function annotateGrid(hb, px, py){
+      const pieces = hb.puzzle.pieces;
+      let minX=Infinity, minY=Infinity;
+      for(const p of pieces){
+        const tp=p.metadata.targetPosition;
+        if(tp){ minX=Math.min(minX,tp.x); minY=Math.min(minY,tp.y); }
+      }
+      const stepX = hb.puzzle.pieceDiameter.x;
+      const stepY = hb.puzzle.pieceDiameter.y;
+      for(const p of pieces){
+        const tp=p.metadata.targetPosition;
+        if(!tp) continue;
+        const col = clamp(Math.round((tp.x - minX)/stepX), 0, px-1);
+        const row = clamp(Math.round((tp.y - minY)/stepY), 0, py-1);
+        p.metadata._grid = {row,col};
+        p.metadata._isEdge = (row===0||col===0||row===py-1||col===px-1);
+      }
+    }
 
-    // Pause button
-    el.btnPause.addEventListener("click", togglePause);
+    /* IMPORTANT FIX: scatter ALL pieces BEFORE attachSolvedValidator */
+    function scatterAllPiecesIntoTrays(hb, px, py){
+      const pieces = hb.puzzle.pieces;
+      const rad = hb.puzzle.pieceRadius;
+      const step = hb.puzzle.pieceDiameter.x;
 
-    // Box top button
-    el.btnBoxTop.addEventListener("click", showBoxTop);
+      // frame dims (target frame starts at 0,0 in Headbreaker coordinates)
+      const frameW = hb.puzzle.pieceDiameter.x * px;
+      const frameH = hb.puzzle.pieceDiameter.y * py;
 
-    // Reset to idle on load
-    clearBoard();
+      // trays left/right of frame
+      const gap = step * 0.8;
+      const trayW = Math.max(frameW * 0.75, step * 8);
 
-    // Start
-    boot();
+      const left =  { x: -trayW - gap, y: 0, w: trayW };
+      const right = { x: frameW + gap,  y: 0, w: trayW };
+
+      // split edge vs inner
+      const edges = [], inner = [];
+      for(const p of pieces){
+        (p.metadata._isEdge ? edges : inner).push(p);
+      }
+
+      // shuffle lists
+      function shuffle(arr){
+        for(let i=arr.length-1;i>0;i--){
+          const j = (Math.random()*(i+1))|0;
+          [arr[i],arr[j]]=[arr[j],arr[i]];
+        }
+      }
+      shuffle(edges); shuffle(inner);
+
+      const cell = step * 1.08;
+      function pack(list, tray){
+        const cols = Math.max(1, Math.floor(tray.w / cell));
+        for(let i=0;i<list.length;i++){
+          const p = list[i];
+          const cx = tray.x + (i % cols)*cell + rad.x;
+          const cy = tray.y + Math.floor(i/cols)*cell + rad.y;
+          const jitterX = (Math.random()-0.5)*step*0.18;
+          const jitterY = (Math.random()-0.5)*step*0.18;
+          const pos = p.centralAnchor.asVector();
+          p.push((cx+jitterX)-pos.x, (cy+jitterY)-pos.y);
+        }
+      }
+      pack(edges, left);
+      pack(inner, right);
+
+      hb.redraw();
+    }
+
+    function setEdgesOnlyMode(enabled){
+      if(!game || !game.hb) return;
+      if(!game.payload.allowEdgeOnly) return;
+      game.edgesOnly = !!enabled;
+      const hb = game.hb;
+      for(const p of hb.puzzle.pieces){
+        const fig = hb.getFigure(p);
+        if(!fig || !fig.group) continue;
+        const show = (!game.edgesOnly) || !!p.metadata._isEdge;
+        fig.group.visible(show);
+        fig.group.listening(show);
+        fig.group.draggable(show && !game.paused && !game.timeUp && !game.finished);
+      }
+      hb.redraw();
+      btnEdges.textContent = game.edgesOnly ? "Mostrar todo" : "Solo bordes";
+    }
+
+    /* Zoom/pan */
+    function viewFitAll(){
+      if(!game || !game.hb) return;
+      const hb = game.hb;
+      const wrap = $("canvasWrap");
+      const r = wrap.getBoundingClientRect();
+      const rad = hb.puzzle.pieceRadius;
+
+      let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
+      for(const p of hb.puzzle.pieces){
+        const pos = p.centralAnchor.asVector();
+        minX=Math.min(minX, pos.x-rad.x);
+        minY=Math.min(minY, pos.y-rad.y);
+        maxX=Math.max(maxX, pos.x+rad.x);
+        maxY=Math.max(maxY, pos.y+rad.y);
+      }
+      // include target frame (0..frameW/0..frameH)
+      const frameW = hb.puzzle.pieceDiameter.x * game.payload.piecesX;
+      const frameH = hb.puzzle.pieceDiameter.y * game.payload.piecesY;
+      minX=Math.min(minX, 0); minY=Math.min(minY, 0);
+      maxX=Math.max(maxX, frameW); maxY=Math.max(maxY, frameH);
+
+      const bw=maxX-minX, bh=maxY-minY;
+      const margin=36;
+      const scale = clamp(0.92*Math.min((r.width-margin)/bw, (r.height-margin)/bh), 0.18, 2.4);
+      game.zoom = scale;
+      try{ hb.scale(scale); }catch{ game.stage.scale({x:scale,y:scale}); }
+
+      const x = (r.width - bw*scale)/2 - minX*scale;
+      const y = (r.height - bh*scale)/2 - minY*scale;
+      game.stage.position({x,y});
+      game.stage.batchDraw();
+    }
+
+    function setZoom(delta){
+      if(!game || !game.hb) return;
+      const hb=game.hb;
+      const wrap=$("canvasWrap");
+      const r=wrap.getBoundingClientRect();
+      const old=game.zoom||1;
+      const next=clamp(old*delta, 0.18, 2.4);
+      const center={x:r.width/2, y:r.height/2};
+      const stage=game.stage;
+      const stagePos=stage.position();
+      const mousePointTo={ x:(center.x-stagePos.x)/old, y:(center.y-stagePos.y)/old };
+      game.zoom=next;
+      try{ hb.scale(next); }catch{ stage.scale({x:next,y:next}); }
+      stage.position({ x:center.x-mousePointTo.x*next, y:center.y-mousePointTo.y*next });
+      stage.batchDraw();
+    }
+
+    btnZoomIn.onclick = () => setZoom(1.12);
+    btnZoomOut.onclick = () => setZoom(1/1.12);
+    btnReframe.onclick = () => viewFitAll();
+
+    /* Timer */
+    function startTimer(){
+      if(!game) return;
+      game.remainingMs = (game.payload.solveSeconds|0)*1000;
+      game.lastTick = performance.now();
+      timerText.textContent = fmtTime(game.remainingMs);
+      if(game.timerId) clearInterval(game.timerId);
+      game.timerId = setInterval(() => {
+        if(!game || !game.running) return;
+        if(game.paused || game.solved || game.timeUp || game.finished) return;
+        const now=performance.now();
+        const dt=now-game.lastTick;
+        game.lastTick=now;
+        game.remainingMs=Math.max(0, game.remainingMs-dt);
+        timerText.textContent=fmtTime(game.remainingMs);
+        if(game.remainingMs<=0) onTimeUp();
+      }, 200);
+    }
+    function stopTimer(){ if(game && game.timerId){ clearInterval(game.timerId); game.timerId=null; } }
+
+    function pauseGame(){
+      if(!game) return;
+      game.paused=true;
+      setInteraction(false);
+      setStatus("warn","Pausado","Pulsa P o el botón para reanudar.");
+      showModal({
+        title:"Pausado",
+        bodyHTML:"<p>Temporizador detenido.</p>",
+        buttons:[
+          {label:"Reanudar", kind:"primary", onClick:()=>{ closeModal(); resumeGame(); }},
+          {label:"Reencuadrar", onClick:()=>{ closeModal(); viewFitAll(); }}
+        ]
+      });
+      btnPause.textContent="Reanudar";
+    }
+    function resumeGame(){
+      if(!game) return;
+      game.paused=false;
+      game.lastTick=performance.now();
+      setInteraction(true);
+      setStatus("info","En juego","Conexiones incorrectas desactivadas.");
+      btnPause.textContent="Pausa";
+      disableControls();
+    }
+
+    function onTimeUp(){
+      if(!game || game.timeUp || game.solved) return;
+      game.timeUp=true;
+      stopTimer();
+      setInteraction(false);
+      disableControls();
+      setStatus("danger","Tiempo agotado","No se muestra la imagen. Puedes reiniciar.");
+      showModal({
+        title:"Tiempo agotado",
+        bodyHTML:"<p>Se terminó el tiempo.</p>",
+        buttons:[
+          {label:"Reiniciar", kind:"primary", onClick: async ()=>{ closeModal(); await restartGame(); }},
+          {label:"Cerrar", onClick: closeModal}
+        ]
+      });
+    }
+
+    async function onSolved(){
+      if(!game || game.solved || game.timeUp) return;
+      game.solved=true;
+      stopTimer();
+      setInteraction(false);
+      disableControls();
+      setStatus("ok","¡Resuelto!","Revelando imagen…");
+      const rs = Math.max(0, game.payload.revealSeconds|0);
+
+      showModal({
+        title:"¡Completado!",
+        bodyHTML: `
+          <p>¡Puzzle resuelto!</p>
+          <p class="small">Revelando ${rs}s… (después: Fin)</p>
+          <img class="imgPreview" alt="Revelado" src="${game.boxTopDataUrl}">
+        `,
+        buttons:[]
+      });
+
+      if(rs>0) await new Promise(r=>setTimeout(r, rs*1000));
+      else await new Promise(r=>setTimeout(r, 400));
+
+      closeModal();
+      game.finished=true;
+      setStatus("ok","Fin","Puedes reiniciar o cargar otro reto.");
+      showModal({
+        title:"Fin",
+        bodyHTML:"<p>Gracias por jugar.</p>",
+        buttons:[
+          {label:"Reiniciar", kind:"primary", onClick: async ()=>{ closeModal(); await restartGame(); }},
+          {label:"Cerrar", onClick: closeModal}
+        ]
+      });
+    }
+
+    async function restartGame(){
+      if(!lastPayload) return;
+      await startGame(lastPayload);
+    }
+
+    /* Box top */
+    btnBoxTop.onclick = () => {
+      if(!game || !game.running || game.payload.mystery || game.timeUp) return;
+      showModal({
+        title:"Box top",
+        bodyHTML: `
+          <p><b>${escapeHtml(game.payload.title||"Imagen")}</b></p>
+          <p class="small">Nota: no es posible evitar capturas de pantalla tras descifrar.</p>
+          <img class="imgPreview" alt="Box top" src="${game.boxTopDataUrl}">
+        `,
+        buttons:[{label:"Cerrar", kind:"primary", onClick: closeModal}]
+      });
+    };
+
+    /* Edges */
+    btnEdges.onclick = () => {
+      if(!game || !game.running || game.timeUp || game.finished) return;
+      setEdgesOnlyMode(!game.edgesOnly);
+    };
+
+    /* Organize = re-scatter loose-ish (actually re-pack all again) */
+    btnOrganize.onclick = () => {
+      if(!game || !game.running || game.timeUp || game.finished) return;
+      scatterAllPiecesIntoTrays(game.hb, game.payload.piecesX, game.payload.piecesY);
+      viewFitAll();
+      setStatus("ok","Organizado","Bordes e interiores reubicados en bandejas.");
+    };
+
+    /* Pause */
+    btnPause.onclick = () => {
+      if(!game || !game.running || game.timeUp || game.finished) return;
+      if(!game.paused) pauseGame(); else resumeGame();
+    };
+
+    /* Fullscreen */
+    btnFullscreen.onclick = async () => {
+      try{
+        if(!document.fullscreenElement) await document.documentElement.requestFullscreen();
+        else await document.exitFullscreen();
+      }catch{
+        showModal({title:"Info", bodyHTML:"<p>Fullscreen no disponible.</p>", buttons:[{label:"OK", kind:"primary", onClick: closeModal}]});
+      }
+    };
+
+    /* Mouse wheel zoom */
+    $("canvasWrap").addEventListener("wheel", (e) => {
+      if(!game || !game.running) return;
+      e.preventDefault();
+      setZoom(e.deltaY > 0 ? (1/1.10) : 1.10);
+    }, {passive:false});
+
+    /* Keyboard shortcuts */
+    document.addEventListener("keydown", (e) => {
+      if(e.repeat) return;
+      if(overlay.getAttribute("aria-hidden")==="false") return;
+      const k=(e.key||"").toLowerCase();
+      if(k==="t"){ e.preventDefault(); cycleTheme(); }
+      if(!game || !game.running) return;
+      if(k==="p"){ e.preventDefault(); btnPause.click(); }
+      if(k==="r"){ e.preventDefault(); btnReframe.click(); }
+      if(k==="o"){ e.preventDefault(); btnOrganize.click(); }
+      if(k==="e"){ e.preventDefault(); btnEdges.click(); }
+      if(k==="b"){ e.preventDefault(); btnBoxTop.click(); }
+      if(k==="+"||k==="="){ e.preventDefault(); btnZoomIn.click(); }
+      if(k==="-" ){ e.preventDefault(); btnZoomOut.click(); }
+    });
+
+    function disableInitial(){
+      btnPause.disabled=true; btnOrganize.disabled=true; btnZoomIn.disabled=true; btnZoomOut.disabled=true;
+      btnReframe.disabled=true; btnBoxTop.disabled=true; btnEdges.disabled=true;
+      btnEdges.style.display="none"; btnBoxTop.style.display="";
+    }
+    disableInitial();
+
+    /* Core startGame with FIX */
+    async function startGame(payload){
+      try{
+        await ensureDeps();
+        stopTimer();
+        destroyStage();
+
+        setTheme(payload.bgTheme || "blue");
+
+        game = {
+          running:false, paused:false, solved:false, timeUp:false, finished:false, edgesOnly:false,
+          payload,
+          hb:null, stage:null,
+          zoom:1,
+          remainingMs: (payload.solveSeconds|0)*1000,
+          lastTick:0,
+          timerId:null,
+          boxTopDataUrl:null
+        };
+
+        setStatus("info","Cargando…","Preparando imagen y puzzle.");
+        timerText.textContent = fmtTime(game.remainingMs);
+
+        const imgBlob = new Blob([new Uint8Array(b64ToBuf(payload.img))], {type: payload.mime || "image/jpeg"});
+        const imgUrl = URL.createObjectURL(imgBlob);
+        const img = new Image(); img.decoding="async"; img.src=imgUrl;
+        await new Promise((res, rej)=>{ img.onload=res; img.onerror=()=>rej(new Error("Imagen inválida en el reto.")); });
+
+        game.boxTopDataUrl = await blobToDataURL(imgBlob);
+        URL.revokeObjectURL(imgUrl);
+
+        const wrap = $("canvasWrap");
+        const rect = wrap.getBoundingClientRect();
+        const W = Math.max(320, Math.floor(rect.width));
+        const H = Math.max(240, Math.floor(rect.height));
+
+        const px = clamp(parseInt(payload.piecesX,10)||0,2,30);
+        const py = clamp(parseInt(payload.piecesY,10)||0,2,30);
+
+        const minSide = Math.min(W, H);
+        const desiredFrame = minSide * 0.62;
+        const basePiece = desiredFrame / Math.max(px, py);
+        const isTouch = matchMedia("(pointer: coarse)").matches;
+        const minPiece = isTouch ? 16 : 18;
+        const pieceSize = clamp(Math.round(basePiece), minPiece, 140);
+
+        const proximity = clamp(Math.round(pieceSize * 0.22), 6, 22);
+        const borderFill = clamp(Math.round(pieceSize * 0.08), 2, 14);
+
+        const hb = new window.headbreaker.Canvas("puzzleCanvas", {
+          width: W, height: H,
+          fixed: false,
+          preventOffstageDrag: false,
+          pieceSize,
+          proximity,
+          borderFill,
+          strokeWidth: 1,
+          lineSoftness: 0.18,
+          outline: new window.headbreaker.outline.Rounded({
+            bezelize: true,
+            bezelDepth: 0.18,
+            insertDepth: 0.92,
+            borderLength: 0.26,
+            referenceInsertAxis: 0.0
+          })
+        });
+
+        const total = px*py;
+        const metadata = Array.from({length: total}, (_,i)=>({id:"p"+i}));
+
+        const gen =
+          (window.headbreaker.generators && window.headbreaker.generators.random) ? window.headbreaker.generators.random :
+          undefined;
+
+        hb.autogenerate({
+          horizontalPiecesCount: px,
+          verticalPiecesCount: py,
+          insertsGenerator: gen,
+          metadata
+        });
+
+        hb.image = img;
+
+        const imgRatio = img.naturalWidth / img.naturalHeight;
+        const puzzleRatio = px / py;
+        if(imgRatio > puzzleRatio) hb.adjustImagesToPuzzleHeight();
+        else hb.adjustImagesToPuzzleWidth();
+
+        // restrict wrong snaps
+        attachStrictConnectionRules(hb);
+
+        // lock connections once made
+        hb.puzzle.forceConnectionWhileDragging();
+        hb.registerKeyboardGestures({}); // disable ctrl/shift gestures that can break
+
+        hb.draw();
+
+        game.hb = hb;
+        game.stage = hb["__konvaLayer__"].getStage();
+
+        // identify edges
+        annotateGrid(hb, px, py);
+
+        // !!! FIX: move pieces away BEFORE solved validator
+        scatterAllPiecesIntoTrays(hb, px, py);
+
+        // Now attach validator (after scatter), so it won't fire instantly
+        hb.attachSolvedValidator();
+        hb.onValid(async () => { await onSolved(); });
+
+        // enable controls
+        game.running = true;
+        setEdgesOnlyMode(false);
+
+        // enable interactions + timer
+        setInteraction(true);
+        disableControls();
+        setStatus("info","En juego","(Ya NO empieza resuelto). Conexiones incorrectas desactivadas.");
+        viewFitAll();
+        startTimer();
+
+      }catch(err){
+        stopTimer();
+        setStatus("danger","Error","No se pudo inicializar el puzzle.");
+        showModal({
+          title:"Error",
+          bodyHTML:`<p>${escapeHtml(err.message||String(err))}</p>`,
+          buttons:[{label:"Cerrar", kind:"primary", onClick: closeModal}]
+        });
+      }
+    }
+
   })();
   </script>
 </body>
 </html>
+
