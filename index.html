@@ -160,6 +160,7 @@
       display:flex; align-items:center; gap:8px;
       min-width: 260px;
       justify-content:flex-end;
+      flex-wrap:wrap;
     }
 
     /* Layout */
@@ -177,6 +178,11 @@
       overflow:auto;
       padding:12px;
     }
+
+    /* Toggle panel for play UX */
+    body.panelHidden #panel{ display:none; }
+    body.panelHidden #layout{ grid-template-columns: 1fr; }
+
     .tabs{
       display:flex;
       gap:8px;
@@ -267,7 +273,6 @@
     #canvasHost{
       position:absolute;
       inset:0;
-      /* important para móvil: evita scroll/zoom del navegador al arrastrar */
       touch-action: none;
       outline:none;
     }
@@ -402,6 +407,7 @@
     </div>
 
     <div id="rightControls">
+      <button class="btn" id="btnPanel" title="Mostrar/ocultar panel (M)">☰ <span class="k">M</span></button>
       <button class="btn" id="btnBoxTop" title="Box top (B)" disabled>Box top <span class="k">B</span></button>
       <button class="btn" id="btnPause" title="Pausar/Reanudar (P)" disabled>Pausa <span class="k">P</span></button>
       <button class="btn" id="btnTheme" title="Cambiar tema (T)">Tema <span class="k">T</span></button>
@@ -504,7 +510,7 @@
           </div>
 
           <p class="hint" style="margin:10px 0 0 0;">
-            Atajos: <b>B</b> box top · <b>P</b> pausa · <b>T</b> tema · <b>R</b> reencuadrar · <b>Esc</b> cerrar overlays
+            Atajos: <b>M</b> panel · <b>B</b> box top · <b>P</b> pausa · <b>T</b> tema · <b>R</b> reencuadrar · <b>Esc</b> cerrar overlays
           </p>
         </div>
 
@@ -573,6 +579,7 @@
       btnStart: $("#btnStart"),
       btnRestart: $("#btnRestart"),
 
+      btnPanel: $("#btnPanel"),
       btnBoxTop: $("#btnBoxTop"),
       btnPause: $("#btnPause"),
       btnTheme: $("#btnTheme"),
@@ -646,6 +653,14 @@
     }
     el.tabCreate.addEventListener("click", () => setTab("create"));
     el.tabPlay.addEventListener("click", () => setTab("play"));
+
+    // -----------------------------
+    // Panel toggle (UX juego)
+    // -----------------------------
+    function togglePanel(){
+      document.body.classList.toggle("panelHidden");
+    }
+    el.btnPanel.addEventListener("click", togglePanel);
 
     // -----------------------------
     // Theme
@@ -854,7 +869,7 @@
     async function loadLibs(){
       setStatus("Cargando librerías (Konva/Headbreaker)…", "warn");
 
-      const konvaURL = await loadFirstWorking(
+      await loadFirstWorking(
         "Konva",
         [
           "./vendor/konva.min.js",
@@ -864,7 +879,7 @@
         () => !!window.Konva
       );
 
-      const hbURL = await loadFirstWorking(
+      await loadFirstWorking(
         "Headbreaker",
         [
           "./vendor/headbreaker.js",
@@ -873,7 +888,7 @@
         () => !!window.headbreaker && !!window.headbreaker.Canvas
       );
 
-      return { konvaURL, hbURL };
+      return true;
     }
 
     // -----------------------------
@@ -895,6 +910,9 @@
       const mm = String(Math.floor(s/60)).padStart(2,"0");
       const ss = String(s%60).padStart(2,"0");
       el.timeText.textContent = `${mm}:${ss}`;
+    }
+    function setTimerIdle(){
+      el.timeText.textContent = "--:--";
     }
     function stopTimer(){
       if (game.tickId) clearInterval(game.tickId);
@@ -928,7 +946,7 @@
       game.payload = null;
       game.imgDataUrl = null;
       game.mystery = false;
-      setTimerSeconds(0);
+      setTimerIdle();
 
       el.btnRestart.disabled = true;
 
@@ -937,7 +955,6 @@
       }catch{}
       game.canvas = null;
 
-      // wipe host
       el.canvasHost.replaceChildren();
 
       enableControls(false);
@@ -969,8 +986,8 @@
         showOverlay({
           title: "HTTPS requerido",
           html: `
-            <p>Esta app usa <b>WebCrypto</b> (PBKDF2 + AES-GCM). Eso requiere <b>HTTPS</b> (GitHub Pages vale).</p>
-            <p class="hint">Si abriste el archivo con <code>file://</code>, publícalo en GitHub Pages o usa un servidor local HTTPS.</p>
+            <p>Esta app usa <b>WebCrypto</b> (PBKDF2 + AES-GCM). Eso requiere <b>HTTPS</b>.</p>
+            <p class="hint">Si abriste el archivo con <code>file://</code>, publícalo en GitHub Pages o usa un servidor local en un contexto seguro.</p>
           `,
           actions: [{label:"Entendido", primary:true, onClick: () => hideOverlay(true)}],
           lock: false
@@ -986,6 +1003,43 @@
         img.onerror = () => reject(new Error("No se pudo cargar la imagen (data URL)."));
         img.src = url;
       });
+    }
+
+    // Trae pieza al frente mientras se arrastra (mejora UX)
+    function bringDraggedToFront(canvas){
+      try{
+        const figures = Object.values(canvas.figures || {});
+        const top = figures.length + 5;
+        figures.forEach(fig => {
+          if (fig?.group?.on){
+            fig.group.on("dragstart", () => fig.group.zIndex(top));
+            fig.group.on("dragmove",  () => fig.group.zIndex(top));
+          }
+        });
+      }catch{}
+    }
+
+    // Auto-reencuadra al soltar, para que nunca “pierdas” piezas fuera de pantalla
+    function attachAutoReframeOnDragEnd(canvas){
+      let queued = false;
+      const schedule = () => {
+        if (queued) return;
+        queued = true;
+        setTimeout(() => {
+          queued = false;
+          try{
+            canvas.reframeWithinDimensions();
+            canvas.redraw();
+          }catch{}
+        }, 0);
+      };
+
+      try{
+        for (const piece of (canvas.puzzle?.pieces || [])){
+          const fig = canvas.getFigure(piece);
+          if (fig?.group?.on) fig.group.on("dragend", schedule);
+        }
+      }catch{}
     }
 
     async function buildPuzzle(payload){
@@ -1025,7 +1079,7 @@
       );
 
       const proximity = clamp(Math.round(pieceSize * 0.16), 10, 30);
-      const borderFill = clamp(Math.round(pieceSize * 0.11), 6, 18);
+      const borderFill = clamp(Math.round(proximity * 0.5), 6, 18); // más “limpio” en el encaje
       const strokeWidth = clamp(pieceSize * 0.028, 1.0, 2.6);
 
       setTargetFrame(piecesX, piecesY, pieceSize);
@@ -1042,23 +1096,24 @@
         outline: new hb.outline.Rounded(),
         image: img,
         fixed: true,
-        preventOffstageDrag: false,
+        preventOffstageDrag: true, // UX: evita mandar piezas fuera
         maxPiecesCount: {x: piecesX, y: piecesY},
       };
 
-      // Prefer explicit Konva painter if available
-      if (hb.painters?.Konva) {
-        opts.painter = new hb.painters.Konva();
-      }
+      // Prefer Konva painter if available (robusto)
+      try{
+        if (hb.KonvaPainter) opts.painter = new hb.KonvaPainter();
+        else if (hb.painters?.KonvaPainter) opts.painter = new hb.painters.KonvaPainter();
+        else if (hb.painters?.Konva) opts.painter = new hb.painters.Konva();
+      }catch{}
 
       const canvas = new hb.Canvas("canvasHost", opts);
 
-      // Scale image to puzzle
-      // (como en la doc: adjustImagesToPuzzleWidth/Height)
+      // Scale image to puzzle (como en demo/doc)
       if ((img.naturalWidth / img.naturalHeight) >= (piecesX / piecesY)) canvas.adjustImagesToPuzzleHeight();
       else canvas.adjustImagesToPuzzleWidth();
 
-      // Generate puzzle with nicer cuts
+      // Generate puzzle
       canvas.autogenerate({
         horizontalPiecesCount: piecesX,
         verticalPiecesCount: piecesY,
@@ -1066,7 +1121,7 @@
         metadata: gridMetadata(piecesX, piecesY)
       });
 
-      // IMPORTANT: strict correct connections only (no incorrect snaps)
+      // Strict correct connections only
       canvas.puzzle.attachHorizontalConnectionRequirement((a, b) => {
         return a.metadata.row === b.metadata.row && Math.abs(a.metadata.col - b.metadata.col) === 1;
       });
@@ -1074,7 +1129,7 @@
         return a.metadata.col === b.metadata.col && Math.abs(a.metadata.row - b.metadata.row) === 1;
       });
 
-      // lock connected groups
+      // Lock connected groups while dragging
       canvas.puzzle.forceConnectionWhileDragging();
 
       // solved callback
@@ -1083,9 +1138,13 @@
         if (game.state === "playing") onSolved();
       });
 
-      // shuffle into workbench
+      // shuffle into workbench + draw
       canvas.shuffleGrid(0.95);
       canvas.draw();
+
+      // UX helpers
+      bringDraggedToFront(canvas);
+      attachAutoReframeOnDragEnd(canvas);
 
       game.canvas = canvas;
 
@@ -1096,7 +1155,15 @@
       el.btnRestart.disabled = false;
 
       setStatus("En juego…", "good");
-      el.btnBoxTop.disabled = mystery; // no box top in mystery
+      el.btnBoxTop.disabled = mystery;
+
+      // focus for keyboard shortcuts
+      try{ el.canvasHost.focus({preventScroll:true}); }catch{}
+
+      // auto-hide panel in mobile when you start playing
+      if (window.matchMedia("(max-width: 920px)").matches) {
+        document.body.classList.add("panelHidden");
+      }
     }
 
     function onTimeout(){
@@ -1229,6 +1296,7 @@
         hideOverlay(false);
         return;
       }
+      if (e.key === "m" || e.key === "M") togglePanel();
       if (e.key === "b" || e.key === "B") showBoxTop();
       if (e.key === "p" || e.key === "P") togglePause();
       if (e.key === "t" || e.key === "T") cycleTheme();
@@ -1236,7 +1304,7 @@
     });
 
     // -----------------------------
-    // Wire controls
+    // Wire controls (UNA sola vez)
     // -----------------------------
     el.btnPause.addEventListener("click", togglePause);
     el.btnReframe.addEventListener("click", reframe);
@@ -1411,22 +1479,17 @@
     }
 
     // -----------------------------
-    // Boot: load libs then enable app
+    // Boot
     // -----------------------------
     async function boot(){
       try{
-        const { konvaURL, hbURL } = await loadLibs();
+        await loadLibs();
 
         setStatus("Listo. Crea un reto o carga un .jpuz.", "neutral");
-        el.timeText.textContent = "--:--";
+        setTimerIdle();
 
-        // Now app is ready
         el.btnGenerate.disabled = false;
         el.btnStart.disabled = false;
-
-        // Explain what got loaded (helpful for debugging)
-        // (Shown only if you open overlay manually; not spamming)
-        // console.log({konvaURL, hbURL});
 
       }catch(e){
         setStatus("No se pudieron cargar librerías.", "bad");
@@ -1460,19 +1523,10 @@
 
     // Controls initial state
     enableControls(false);
-    setTimerSeconds(0);
+    setTimerIdle();
 
     // Tab initial
     setTab("create");
-
-    // Reframe button action (works only when playing)
-    el.btnReframe.addEventListener("click", reframe);
-
-    // Pause button
-    el.btnPause.addEventListener("click", togglePause);
-
-    // Box top button
-    el.btnBoxTop.addEventListener("click", showBoxTop);
 
     // Reset to idle on load
     clearBoard();
@@ -1483,4 +1537,3 @@
   </script>
 </body>
 </html>
-
